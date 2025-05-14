@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== Global Variables and Font ===== */
+:root {
+  --background-dark: #121212;
+  --text-dark: rgba(255, 255, 255, 0.87);
+  --background-light: #ffffff;
+  --text-light: #213547;
+
+  font-family: 'Inter', system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+
+  color-scheme: light dark;
+  background-color: var(--background-dark);
+  color: var(--text-dark);
+}
+
+/* ===== Body and Layout ===== */
+body {
+  @apply m-0 min-h-screen flex flex-col;
+}
+
+/* ===== Links ===== */
+a {
+  @apply font-medium text-indigo-400 no-underline;
+}
+a:hover {
+  @apply text-indigo-300;
+}
+
+/* ===== Headings ===== */
+h1 {
+  @apply text-4xl font-bold leading-tight;
+}
+
+/* ===== Buttons ===== */
+button {
+  @apply px-4 py-2 rounded border border-transparent bg-gray-800 text-white font-medium transition-colors;
+}
+button:hover {
+  @apply border-indigo-500;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+/* ===== Code Blocks ===== */
+code {
+  @apply bg-gray-800 text-sm px-2 py-1 rounded;
+}
+
+/* ===== Card Example Class ===== */
+.card {
+  @apply p-8 bg-gray-900 rounded-lg shadow-md;
+}
+
+/* ===== App Wrapper ===== */
+#app {
+  @apply max-w-6xl mx-auto p-8 text-center;
+}
+
+/* ===== Light Theme Support ===== */
+@media (prefers-color-scheme: light) {
+  :root {
+    background-color: var(--background-light);
+    color: var(--text-light);
+  }
+  a:hover {
+    @apply text-indigo-600;
+  }
+  button {
+    @apply bg-gray-100 text-black;
+  }
+  code {
+    @apply bg-gray-200 text-black;
+  }
+}
