@@ -1,68 +1,53 @@
-import { useEffect, useState, useMemo } from "react";
-import { allTracks } from "../data/tracks";
-import { getRankedTrackList } from "../utils/getRankedTrackList";
-import { Track } from "../types";
-import { TrackList } from "../components/tracks/TrackList";
+import { useEffect, useMemo, useRef } from "react";
 import { useAudioPlayerContext } from "@/contexts/AudioPlayerProvider";
+import { getRankedTrackList } from "@/utils/getRankedTrackList";
+import { TrackList } from "@/components/tracks/TrackList";
+import { useLikes } from "@/hooks/useLikes";
+import { useAppSettings } from "@/hooks/useAppSettings";
+import { useTracks } from "@/hooks/useTracks";
 
 export default function HomePage() {
   const player = useAudioPlayerContext();
-  const [liked, setLiked] = useState<Set<string>>(new Set());
-  const [genreStats, setGenreStats] = useState<Record<string, number>>({});
-
-  useEffect(() => {
-    const load = async () => {
-      const likedFromFile = await window.electronAPI.loadLikes();
-      const likedSet = new Set(likedFromFile);
-      setLiked(likedSet);
-
-      const stats: Record<string, number> = {};
-      likedFromFile.forEach((file) => {
-        const track = allTracks.find((t) => t.file === file);
-        if (track) {
-          stats[track.genre] = (stats[track.genre] || 0) + 1;
-        }
-      });
-      setGenreStats(stats);
-    };
-    load();
-  }, []);
+  const { liked, genreStats, toggleLike } = useLikes();
+  const { volume, setVolume, lastPlayed, isReady } = useAppSettings();
+  const { tracks } = useTracks();
+  const initialized = useRef(false);
 
   const displayTracks = useMemo(
-    () => getRankedTrackList(genreStats, liked, allTracks),
+    () => getRankedTrackList(genreStats, liked, tracks),
     [genreStats, liked]
   );
 
-  const toggleLike = (track: Track) => {
-    const newLiked = new Set(liked);
-    const newStats = { ...genreStats };
-    if (newLiked.has(track.file)) {
-      newLiked.delete(track.file);
-      newStats[track.genre] = (newStats[track.genre] || 1) - 1;
-    } else {
-      newLiked.add(track.file);
-      newStats[track.genre] = (newStats[track.genre] || 0) + 1;
+  useEffect(() => {
+    if (isReady) {
+      player.setTargetVolume(volume);
     }
-    setLiked(newLiked);
-    setGenreStats(newStats);
-    window.electronAPI.saveLikes(Array.from(newLiked));
-  };
+  }, [isReady, volume]);
 
-  const playTrack = (track: Track) => {
-    player.playTrack(track);
-  };
-
-  const pauseTrack = () => {
-    player.togglePlayPause();
-  };
+  // Loading the last track
+  useEffect(() => {
+    if (!initialized.current && isReady && lastPlayed) {
+      // If the current track is already the same, don't load it
+      if (
+        !player.currentTrack ||
+        player.currentTrack.file !== lastPlayed.file
+      ) {
+        const found = tracks.find((t) => t.file === lastPlayed.file);
+        if (found) {
+          player.loadTrack(found, lastPlayed.position);
+        }
+      }
+      initialized.current = true;
+    }
+  }, [isReady, lastPlayed]);
 
   return (
     <TrackList
       tracks={displayTracks}
       liked={liked}
       toggleLike={toggleLike}
-      onPlay={playTrack}
-      onPause={pauseTrack}
+      onPlay={player.playTrack}
+      onPause={player.togglePlayPause}
       currentTrackFile={player.currentTrack?.file}
       isPlaying={player.isPlaying}
     />

@@ -27,6 +27,7 @@ export function TrackList({
   toggleLike,
   onPlay,
   onPause,
+
   currentTrackFile,
   isPlaying,
 }: Props) {
@@ -37,10 +38,10 @@ export function TrackList({
           {title}
         </Typography>
       )}
-      <Table sx={{ minWidth: 650 , mb: "40px"}}>
+      <Table  sx={{ minWidth: 650, mb: "40px" }}>
         <TableHead>
           <TableRow>
-            <TableCell size="small" sx={{ color: "gray" }}>
+            <TableCell align="center" size="small" sx={{ color: "gray" }}>
               #
             </TableCell>
             <TableCell sx={{ color: "gray" }}>Title</TableCell>
@@ -48,6 +49,9 @@ export function TrackList({
             {/* <TableCell sx={{ color: "gray" }}>Genre</TableCell> */}
             <TableCell sx={{ color: "gray" }} align="right">
               Like
+            </TableCell>
+            <TableCell sx={{ color: "gray" }} align="right">
+              Duration
             </TableCell>
           </TableRow>
         </TableHead>

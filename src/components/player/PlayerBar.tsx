@@ -1,4 +1,4 @@
-import { Box, IconButton, Slider, Typography } from "@mui/material";
+import { Box, IconButton, Slider, Typography, useTheme } from "@mui/material";
 import {
   PlayArrow,
   Pause,
@@ -8,15 +8,19 @@ import {
   VolumeOff,
 } from "@mui/icons-material";
 import { useEffect, useState } from "react";
+import { DurationProgress } from "../DurationProgress/DurationProgress";
+import { useAudioProgress } from "@/hooks/useAudioProgress";
+import formatDuration from "@/utils/formatDuration";
 
 interface Props {
+  audioRef: React.RefObject<HTMLAudioElement>;
   isPlaying: boolean;
   togglePlayPause: () => void;
   progress: number;
   duration: number;
   onSeek: (percent: number) => void;
   title?: string;
-  artist?: string;
+  artists?: string[];
   onPrev: () => void;
   onNext: () => void;
   volume: number;
@@ -26,12 +30,13 @@ interface Props {
 
 export function PlayerBar({
   isPlaying,
+  audioRef,
   togglePlayPause,
-  progress,
+  // progress,
   duration,
   onSeek,
   title,
-  artist,
+  artists,
   onPrev,
   onNext,
   volume,
@@ -40,8 +45,8 @@ export function PlayerBar({
 }: Props) {
   const [lastVolume, setLastVolume] = useState(volume);
 
-  const format = (n: number) =>
-    `${Math.floor(n / 60)}:${String(Math.floor(n % 60)).padStart(2, "0")}`;
+  const progress = useAudioProgress(audioRef);
+  const theme = useTheme();
 
   const handleMuteToggle = () => {
     if (volume > 0) {
@@ -86,7 +91,7 @@ export function PlayerBar({
             {title || "No track playing"}
           </Typography>
           <Typography variant="body2" color="gray">
-            {artist || ""}
+            {artists || ""}
           </Typography>
         </Box>
       </Box>
@@ -102,18 +107,20 @@ export function PlayerBar({
         }}
       >
         <Box>
-          <IconButton onClick={onPrev} sx={{ color: "white" }}>
-            <SkipPrevious />
+          <SkipPrevious onClick={onPrev} sx={{ color: "white" }} />
+
+          <IconButton onClick={togglePlayPause} sx={{ bgcolor: "white" }}>
+            {isPlaying ? (
+              <Pause sx={{ color: theme.palette.primary.contrastText }} />
+            ) : (
+              <PlayArrow sx={{ color: theme.palette.primary.contrastText }} />
+            )}
           </IconButton>
-          <IconButton onClick={togglePlayPause} sx={{ color: "white" }}>
-            {isPlaying ? <Pause /> : <PlayArrow />}
-          </IconButton>
-          <IconButton onClick={onNext} sx={{ color: "white" }}>
-            <SkipNext />
-          </IconButton>
+
+          <SkipNext onClick={onNext} sx={{ color: "white" }} />
         </Box>
 
-        <Slider
+        {/* <Slider
           value={progress}
           min={0}
           max={duration || 1}
@@ -123,8 +130,26 @@ export function PlayerBar({
             width: "100%",
             mt: 1,
           }}
-        />
+        /> */}
 
+        {/* <Slider
+          value={dragProgress !== null ? dragProgress : progress}
+          min={0}
+          max={duration || 1}
+          step={0.1}
+          onChange={(_, val) => setDragProgress(val as number)}
+          onChangeCommitted={(_, val) => {
+            setDragProgress(null);
+            onSeek((val as number) / duration);
+          }}
+          sx={{ color: "green", width: 400 }}
+        /> */}
+
+        <DurationProgress
+          value={progress}
+          duration={duration}
+          onSeek={onSeek}
+        />
         <Box
           sx={{
             display: "flex",
@@ -134,10 +159,10 @@ export function PlayerBar({
           }}
         >
           <Typography variant="caption" color="gray.400">
-            {format(progress)}
+            {formatDuration(progress)}
           </Typography>
           <Typography variant="caption" color="gray.400">
-            {format(duration)}
+            {formatDuration(duration)}
           </Typography>
         </Box>
       </Box>

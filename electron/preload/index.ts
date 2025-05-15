@@ -1,3 +1,4 @@
+import { Track } from "@/types";
 import { ipcRenderer, contextBridge } from "electron";
 
 // --------- Expose some API to the Renderer process ---------
@@ -51,6 +52,14 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // Cover
   getCover: (filePath: string): Promise<string> =>
     ipcRenderer.invoke("get-cover", filePath),
+
+  // Available tracks
+  getAvailableTracks: (tracks: Track[]) =>
+    ipcRenderer.invoke("get-available-tracks", tracks),
+
+  // Auto-scanning and returns tracks
+  loadTracksWithMetadata: (): Promise<Track[]> =>
+    ipcRenderer.invoke("load-tracks-with-metadata"),
 });
 
 // --------- Preload scripts loading ---------

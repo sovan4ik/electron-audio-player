@@ -86,22 +86,22 @@ export function useAudioPlayer() {
     if (!audio || targetVolume === null) return;
 
     if (audio.paused) {
+      setIsPlaying(true);
       audio.volume = targetVolume;
       audio
         .play()
         .then(() => fadeIn(audio, targetVolume))
         .catch((err) => {
           console.error("Play error:", err);
+          setIsPlaying(false);
         });
-      setIsPlaying(true);
     } else {
+      setIsPlaying(false);
       fadeOut(audio).then(() => {
         audio.pause();
-        setIsPlaying(false);
       });
     }
   };
-
   const handleSeek = (percent: number) => {
     const audio = audioRef.current;
     if (audio && duration) {

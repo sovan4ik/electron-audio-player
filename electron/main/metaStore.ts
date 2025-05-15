@@ -2,9 +2,12 @@ import { app } from "electron";
 import fs from "fs";
 import path from "path";
 import * as mm from "music-metadata";
+import { Track } from "@/types";
 
 // --- Paths ---
 const baseDir = app.getPath("userData");
+
+const TRACKS_DIR = path.join(app.getAppPath(), "public/assets/tracks");
 
 const paths = {
   meta: path.join(baseDir, "meta.json"),
@@ -62,6 +65,42 @@ async function getCover(filePath: string): Promise<string> {
   }
 }
 
+async function getAvailableTracks(tracks: Track[]): Promise<Track[]> {
+  return tracks.filter((track: { file: string }) =>
+    fs.existsSync(path.join(process.env.VITE_PUBLIC!, track.file))
+  );
+}
+
+async function loadTracksWithMetadata(): Promise<Track[]> {
+  const files = fs.readdirSync(TRACKS_DIR).filter((f) => f.endsWith(".mp3"));
+
+  const tracks = await Promise.all(
+    files.map(async (file) => {
+      const filePath = path.join(TRACKS_DIR, file);
+      try {
+        const metadata = await mm.parseFile(filePath);
+        return {
+          title: metadata.common.title || file,
+          artists:
+            metadata.common.artists ||
+            (metadata.common.artist
+              ? [metadata.common.artist]
+              : ["Unknown Artist"]),
+          genres: metadata.common.genre || [],
+          album: metadata.common.album || "Unknown Album",
+          duration: metadata.format.duration || 0,
+          file: `/assets/tracks/${file}`,
+          cover: await getCover(filePath),
+        };
+      } catch (e) {
+        console.error("Metadata error:", e);
+        return null;
+      }
+    })
+  );
+
+  return tracks.filter((t): t is Track => t !== null);
+}
 // --- Exported API ---
 export const metaStore = {
   // Meta
@@ -130,6 +169,12 @@ export const metaStore = {
 
   // Cover
   getCover,
+
+  // Available tracks
+  getAvailableTracks,
+
+  // Auto-scanning and returns tracks
+  loadTracksWithMetadata,
 
   // Paths (debug/logging)
   paths,

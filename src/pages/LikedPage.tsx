@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { allTracks } from "../data/tracks";
+import { useTracks } from "@/hooks/useTracks";
+import { useAudioPlayerContext } from "@/contexts/AudioPlayerProvider";
 import { Track } from "../types";
 import { TrackList } from "../components/tracks/TrackList";
-import { useAudioPlayerContext } from "@/contexts/AudioPlayerProvider";
 
 export default function LikedPage() {
-const player = useAudioPlayerContext();
+  const player = useAudioPlayerContext();
+  const { tracks } = useTracks();
   const [liked, setLiked] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -16,7 +17,7 @@ const player = useAudioPlayerContext();
     load();
   }, []);
 
-  const likedTracks = allTracks.filter((track) => liked.has(track.file));
+  const likedTracks = tracks.filter((track) => liked.has(track.file));
 
   const toggleLike = (track: Track) => {
     const newLiked = new Set(liked);
@@ -33,13 +34,19 @@ const player = useAudioPlayerContext();
     player.playTrack(track);
   };
 
+  const pauseTrack = () => {
+    player.togglePlayPause();
+  };
+
   return (
     <TrackList
       tracks={likedTracks}
       liked={liked}
       toggleLike={toggleLike}
       onPlay={playTrack}
+      onPause={pauseTrack}
       currentTrackFile={player.currentTrack?.file}
+      isPlaying={player.isPlaying}
     />
   );
 }

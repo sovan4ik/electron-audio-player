@@ -7,7 +7,11 @@ export function getRankedTrackList(
 ): Track[] {
   return allTracks
     .map((track) => {
-      const genreWeight = likedGenres[track.genre] || 0;
+      const genreWeight = (track.genres || []).reduce(
+        (sum, genre) => sum + (likedGenres[genre] || 0),
+        0
+      );
+
       const likedWeight = likedTracks.has(track.file) ? 10 : 0;
       const noise = Math.random() * 0.05;
       const weight = genreWeight + likedWeight + noise;

@@ -6,33 +6,42 @@ import { useAudioPlayerContext } from "@/contexts/AudioPlayerProvider";
 import { useCover } from "@/hooks/useCover";
 import { useAppSettings } from "@/hooks/useAppSettings";
 import { useEffect, useRef } from "react";
-import { allTracks } from "@/data/tracks";
+import { useTracks } from "@/hooks/useTracks";
 
 export default function RootLayout() {
   const player = useAudioPlayerContext();
-  const { volume, setVolume, lastPlayed, saveLastPlayed, isReady } =
-    useAppSettings();
+  const { tracks, isTracksReady } = useTracks();
+  const {
+    volume,
+    setVolume,
+    lastPlayed,
+    saveLastPlayed,
+    isReady: isSettingsReady,
+  } = useAppSettings();
+
   const cover = useCover(player.currentTrack);
   const initialized = useRef(false);
 
   // Set the volume in the player after loading
   useEffect(() => {
-    if (isReady) {
+    if (isSettingsReady) {
       console.log("[FORCE APPLY VOLUME]", volume);
       player.setTargetVolume(volume);
     }
-  }, [isReady, volume]);
+  }, [isSettingsReady, volume]);
 
   // Load the last played track (without autoplay)
   useEffect(() => {
-    if (!initialized.current && isReady && lastPlayed) {
-      const found = allTracks.find((t) => t.file === lastPlayed.file);
-      if (found) {
-        player.loadTrack(found, lastPlayed.position);
+    if (!initialized.current && isSettingsReady && isTracksReady) {
+      if (lastPlayed) {
+        const found = tracks.find((t) => t.file === lastPlayed.file);
+        if (found) {
+          player.loadTrack(found, lastPlayed.position);
+        }
       }
       initialized.current = true;
     }
-  }, [isReady, lastPlayed]);
+  }, [isSettingsReady, isTracksReady, lastPlayed, tracks]);
 
   // Save track position every 1.5 seconds
   useEffect(() => {
@@ -44,7 +53,7 @@ export default function RootLayout() {
           position: audio.currentTime,
         });
       }
-    }, 1500);
+    }, 1000);
     return () => clearInterval(interval);
   }, [player.currentTrack]);
 
@@ -57,16 +66,17 @@ export default function RootLayout() {
 
       {player.currentTrack && (
         <PlayerBar
-          cover={cover}
+          audioRef={player.audioRef}
           isPlaying={player.isPlaying}
+          cover={cover}
           togglePlayPause={player.togglePlayPause}
           progress={player.progress}
           duration={player.duration}
           onSeek={player.handleSeek}
           title={player.currentTrack?.title}
-          artist={player.currentTrack?.artist}
-          onNext={() => player.playNext(allTracks)}
-          onPrev={() => player.playPrev(allTracks)}
+          artists={player.currentTrack?.artists}
+          onNext={() => player.playNext(tracks)}
+          onPrev={() => player.playPrev(tracks)}
           volume={volume}
           setVolume={setVolume}
         />
@@ -74,7 +84,7 @@ export default function RootLayout() {
 
       <audio
         ref={player.audioRef}
-        onEnded={() => player.playNext(allTracks)}
+        onEnded={() => player.playNext(tracks)}
         onTimeUpdate={player.handleTimeUpdate}
         onLoadedMetadata={player.handleLoadedMetadata}
       />

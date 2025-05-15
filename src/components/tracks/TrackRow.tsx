@@ -1,9 +1,3 @@
-
-
-
-
-
-
 import {
   Avatar,
   Box,
@@ -17,10 +11,11 @@ import PlayArrow from "@mui/icons-material/PlayArrow";
 import Pause from "@mui/icons-material/Pause";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Track } from "../../types";
 import { NowPlayingBars } from "../NowPlayingBars";
 import { useCover } from "@/hooks/useCover";
+import formatDuration from "@/utils/formatDuration";
 
 interface TrackRowProps {
   track: Track;
@@ -46,47 +41,55 @@ export function TrackRow({
   const [hovered, setHovered] = useState(false);
   const cover = useCover(track);
 
+  const handlePlay = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (current) {
+      onPause(track);
+    } else {
+      onPlay(track);
+    }
+  };
+
+  const isActive = current && isPlaying;
+  const isPaused = current && !isPlaying;
+
   return (
     <TableRow
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       sx={{
-        backgroundColor: current ? "#2a2a2a" : "transparent",
+        // backgroundColor: current ? "#2a2a2a" : "transparent",
         transition: "background-color 0.2s",
+        cursor: "pointer",
       }}
-      hover
-      onClick={() => onPlay(track)}
     >
-      {/* Left: play index or icon */}
-      <TableCell sx={{ color: "white", width: 50 }}>
-        {current && hovered ? (
-          <IconButton
-            onClick={(e) => {
-              e.stopPropagation();
-              onPause(track);
-            }}
-            size="small"
-          >
-            <Pause sx={{ color: "white" }} fontSize="small" />
-          </IconButton>
-        ) : current ? (
-          <NowPlayingBars active={isPlaying} />
-        ) : hovered ? (
-          <IconButton
-            onClick={(e) => {
-              e.stopPropagation();
-              onPlay(track);
-            }}
-            size="small"
-          >
-            <PlayArrow sx={{ color: "white" }} fontSize="small" />
-          </IconButton>
+      <TableCell align="center" size="small" sx={{ width: 50 }}>
+        {hovered && current && isPlaying ? (
+          <Tooltip title={`Pause ${track.title}`}>
+            <Pause
+              onClick={handlePlay}
+              sx={{ color: "white", cursor: "pointer" }}
+              fontSize="small"
+            />
+          </Tooltip>
+        ) : hovered && (!current || !isPlaying) ? (
+          <Tooltip title={`Play ${track.title}`}>
+            <PlayArrow
+              onClick={handlePlay}
+              sx={{ color: "white", cursor: "pointer" }}
+              fontSize="small"
+            />
+          </Tooltip>
+        ) : isActive ? (
+          <NowPlayingBars active />
+        ) : isPaused ? (
+          <Typography sx={{ color: "#1db954" }}>{index + 1}</Typography>
         ) : (
-          index + 1
+          <Typography sx={{ color: "white" }}>{index + 1}</Typography>
         )}
       </TableCell>
 
-      {/* Middle: title + artist */}
+      {/* Title & Artist */}
       <TableCell sx={{ color: "white" }}>
         <Box display="flex" alignItems="center" gap={2}>
           <Avatar
@@ -97,20 +100,31 @@ export function TrackRow({
           />
           <Box>
             <Tooltip title={track.title} placement="top">
-              <Typography variant="body1" color="white">
+              <Typography
+                variant="body1"
+                sx={{
+                  color: isActive || isPaused ? "#1db954" : "white",
+                  // fontWeight: isActive ? 500 : 400,
+                }}
+              >
                 {track.title}
               </Typography>
             </Tooltip>
 
-            <Typography variant="body2" color="gray">
-              {track.artist}
+            <Typography
+              variant="body2"
+              sx={{
+                color: hovered ? "#bbbbbb" : "gray",
+              }}
+            >
+              {track.artists.join(", ")}
             </Typography>
           </Box>
         </Box>
       </TableCell>
-      <TableCell sx={{ color: "white" }}>{track.artist}</TableCell>
-      <TableCell sx={{ color: "white" }}>{track.genre}</TableCell>
-      {/* Right: like button */}
+
+      <TableCell sx={{ color: "white" }}>{track.album}</TableCell>
+
       <TableCell align="right">
         <IconButton
           onClick={(e) => {
@@ -125,9 +139,9 @@ export function TrackRow({
           )}
         </IconButton>
       </TableCell>
+      <TableCell sx={{ color: "white" }}>
+        {formatDuration(track.duration)}
+      </TableCell>
     </TableRow>
   );
 }
-
-
-

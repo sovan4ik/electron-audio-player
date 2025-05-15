@@ -5,13 +5,13 @@ export function NowPlayingBars({ active = true }: { active: boolean }) {
   const durations = ["1.4s", "1.6s", "1.2s", "1.5s"];
 
   return (
-    <Box display="flex" alignItems="end" justifyContent="center" height={20}>
+    <Box display="flex" alignItems="end" justifyContent="center" height={10}>
       {delays.map((delay, i) => (
         <Box
           key={i}
           sx={{
-            width: 2,
-            height: 10,
+            width: 1,
+            height: 8,
             margin: "0 2px",
             backgroundColor: "#1db954",
             animation: active

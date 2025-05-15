@@ -4,8 +4,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import os from "node:os";
 import { update } from "./update";
-import fs from "fs";
-import * as mm from "music-metadata";
+
 import { metaStore } from "./metaStore";
 
 const require = createRequire(import.meta.url);
@@ -148,3 +147,13 @@ ipcMain.on("toggle-ignore", (_e, track) => metaStore.toggleIgnored(track));
 
 // Cover
 ipcMain.handle("get-cover", (_e, filePath) => metaStore.getCover(filePath));
+
+// Available tracks
+ipcMain.handle("get-available-tracks", (_e, tracks) =>
+  metaStore.getAvailableTracks(tracks)
+);
+
+// Auto-scanning and returns tracks
+ipcMain.handle("load-tracks-with-metadata", () =>
+  metaStore.loadTracksWithMetadata()
+);

@@ -26,6 +26,12 @@ declare global {
 
       // Cover
       getCover: (filePath: string) => Promise<string>;
+
+      // Available tracks
+      getAvailableTracks: (tracks: Track[]) => Promise<Track[]>;
+
+      // Auto-scanning and returns tracks
+      loadTracksWithMetadata: () => Promise<Track[]>;
     };
   }
 }
