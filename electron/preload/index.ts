@@ -23,17 +23,34 @@ contextBridge.exposeInMainWorld("ipcRenderer", {
 });
 
 contextBridge.exposeInMainWorld("electronAPI", {
-  saveLikes: (data: string[]) => ipcRenderer.send("save-likes", data),
-  loadLikes: () => ipcRenderer.invoke("load-likes"),
+  // Meta
+  loadVolume: (): Promise<number> => ipcRenderer.invoke("load-volume"),
+  saveVolume: (v: number): void => ipcRenderer.send("save-volume", v),
 
-  saveLastPlayed: (data: { file: string; position: number }) =>
+  loadLastPlayed: (): Promise<{ file: string; position: number } | null> =>
+    ipcRenderer.invoke("load-last-played"),
+  saveLastPlayed: (data: { file: string; position: number }): void =>
     ipcRenderer.send("save-last-played", data),
-  loadLastPlayed: () => ipcRenderer.invoke("load-last-played"),
 
-  saveVolume: (volume: number) => ipcRenderer.send("save-volume", volume),
-  loadVolume: () => ipcRenderer.invoke("load-volume"),
+  // Likes
+  loadLikes: (): Promise<string[]> => ipcRenderer.invoke("load-likes"),
+  saveLikes: (list: string[]): void => ipcRenderer.send("save-likes", list),
+  likeTrack: (track: string): void => ipcRenderer.send("like-track", track),
+  unlikeTrack: (track: string): void => ipcRenderer.send("unlike-track", track),
+  toggleLike: (track: string): void => ipcRenderer.send("toggle-like", track),
 
-  getCover: (filePath: string) => ipcRenderer.invoke("get-cover", filePath),
+  // Ignored
+  loadIgnored: (): Promise<string[]> => ipcRenderer.invoke("load-ignored"),
+  saveIgnored: (list: string[]): void => ipcRenderer.send("save-ignored", list),
+  ignoreTrack: (track: string): void => ipcRenderer.send("ignore-track", track),
+  unignoreTrack: (track: string): void =>
+    ipcRenderer.send("unignore-track", track),
+  toggleIgnore: (track: string): void =>
+    ipcRenderer.send("toggle-ignore", track),
+
+  // Cover
+  getCover: (filePath: string): Promise<string> =>
+    ipcRenderer.invoke("get-cover", filePath),
 });
 
 // --------- Preload scripts loading ---------

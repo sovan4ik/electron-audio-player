@@ -16,7 +16,6 @@ export function TopBar() {
         borderBottom: "1px solid #333",
       }}
     >
-      {/* Левая часть */}
       <Box>
         <Tooltip title="Home">
           <IconButton component={Link} to="/" sx={{ color: "white" }}>
@@ -25,7 +24,6 @@ export function TopBar() {
         </Tooltip>
       </Box>
 
-      {/* Правая часть */}
       <Box sx={{ display: "flex", gap: 1 }}>
         <Tooltip title="Liked Songs">
           <IconButton component={Link} to="/liked" sx={{ color: "white" }}>

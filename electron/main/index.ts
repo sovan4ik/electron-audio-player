@@ -6,6 +6,7 @@ import os from "node:os";
 import { update } from "./update";
 import fs from "fs";
 import * as mm from "music-metadata";
+import { metaStore } from "./metaStore";
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -125,56 +126,25 @@ ipcMain.handle("open-win", (_, arg) => {
   }
 });
 
-const getLikesPath = () => {
-  const t = path.join(app.getPath("userData"), "likedTracks.json");
-  console.log(t);
+ipcMain.handle("load-volume", () => metaStore.getVolume());
+ipcMain.on("save-volume", (_e, v) => metaStore.setVolume(v));
 
-  return t;
-};
+ipcMain.handle("load-last-played", () => metaStore.getLastPlayed());
+ipcMain.on("save-last-played", (_e, data) => metaStore.setLastPlayed(data));
 
-ipcMain.on("save-likes", (_event, data: string[]) => {
-  fs.writeFileSync(getLikesPath(), JSON.stringify(data, null, 2));
-});
+// Likes
+ipcMain.handle("load-likes", () => metaStore.getLiked());
+ipcMain.on("save-likes", (_e, list) => metaStore.setLiked(list));
+ipcMain.on("like-track", (_e, track) => metaStore.addLiked(track));
+ipcMain.on("unlike-track", (_e, track) => metaStore.removeLiked(track));
+ipcMain.on("toggle-like", (_e, track) => metaStore.toggleLiked(track));
 
-ipcMain.handle("load-likes", () => {
-  const filePath = getLikesPath();
-  if (!fs.existsSync(filePath)) return [];
-  try {
-    const content = fs.readFileSync(filePath, "utf-8");
-    return JSON.parse(content);
-  } catch {
-    return [];
-  }
-});
+// Ignored
+ipcMain.handle("load-ignored", () => metaStore.getIgnored());
+ipcMain.on("save-ignored", (_e, list) => metaStore.setIgnored(list));
+ipcMain.on("ignore-track", (_e, track) => metaStore.addIgnored(track));
+ipcMain.on("unignore-track", (_e, track) => metaStore.removeIgnored(track));
+ipcMain.on("toggle-ignore", (_e, track) => metaStore.toggleIgnored(track));
 
-const volumePath = path.join(app.getPath("userData"), "volume.json");
-
-ipcMain.on("save-volume", (_e, volume) => {
-  fs.writeFileSync(volumePath, JSON.stringify({ volume }));
-});
-
-ipcMain.handle("load-volume", () => {
-  if (!fs.existsSync(volumePath)) return 0.5;
-  try {
-    const content = fs.readFileSync(volumePath, "utf-8");
-    return JSON.parse(content).volume ?? 0.5;
-  } catch {
-    return 0.5;
-  }
-});
-
-ipcMain.handle("get-cover", async (_event, filePath) => {
-  try {
-    const buffer = fs.readFileSync(filePath);
-    const metadata = await mm.parseBuffer(buffer, "audio/mpeg");
-    const picture = metadata.common.picture?.[0];
-    if (picture) {
-      const base64 = Buffer.from(picture.data).toString("base64");
-      return `data:${picture.format};base64,${base64}`;
-    }
-    return "/assets/images/no-cover.png";
-  } catch (e) {
-    console.error("Error reading cover:", e);
-    return "/assets/images/no-cover.png";
-  }
-});
+// Cover
+ipcMain.handle("get-cover", (_e, filePath) => metaStore.getCover(filePath));

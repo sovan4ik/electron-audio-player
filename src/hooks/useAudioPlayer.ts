@@ -7,27 +7,41 @@ export function useAudioPlayer() {
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [targetVolume, setTargetVolume] = useState(0.5);
+  const [targetVolume, setTargetVolume] = useState<number | null>(null);
+
+  let isFading = false;
 
   const playTrack = (track: Track, startTime = 0) => {
+    const audio = audioRef.current;
+    if (!audio || targetVolume === null) return;
+
+    setCurrentTrack(track);
+    setIsPlaying(true);
+
+    audio.src = track.file;
+    audio.currentTime = startTime;
+
+    audio.onloadedmetadata = () => {
+      audio.volume = targetVolume;
+      audio.play().catch((err) => {
+        console.error("Play error:", err);
+        setIsPlaying(false);
+      });
+    };
+  };
+
+  const loadTrack = (track: Track, startTime = 0) => {
     const audio = audioRef.current;
     if (!audio) return;
 
     setCurrentTrack(track);
-    setIsPlaying(true);
+    setIsPlaying(false);
+
     audio.src = track.file;
     audio.currentTime = startTime;
-    audio.volume = 0;
-
-    audio.onloadedmetadata = () => {
-      audio
-        .play()
-        .then(() => fadeIn(audio, targetVolume))
-        .catch((err) => {
-          console.error("Play error:", err);
-          setIsPlaying(false);
-        });
-    };
+    if (targetVolume !== null) {
+      audio.volume = targetVolume;
+    }
   };
 
   const fadeOut = (audio: HTMLAudioElement, duration = 400): Promise<void> => {
@@ -35,12 +49,15 @@ export function useAudioPlayer() {
       const step = 50;
       const steps = duration / step;
       const volumeStep = audio.volume / steps;
+      isFading = true;
+
       const interval = setInterval(() => {
         if (audio.volume > volumeStep) {
           audio.volume -= volumeStep;
         } else {
           audio.volume = 0;
           clearInterval(interval);
+          isFading = false;
           resolve();
         }
       }, step);
@@ -51,21 +68,25 @@ export function useAudioPlayer() {
     const step = 50;
     const steps = duration / step;
     const volumeStep = target / steps;
+    isFading = true;
+
     const interval = setInterval(() => {
       if (audio.volume < target - volumeStep) {
         audio.volume += volumeStep;
       } else {
         audio.volume = target;
         clearInterval(interval);
+        isFading = false;
       }
     }, step);
   };
 
   const togglePlayPause = () => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio || targetVolume === null) return;
 
     if (audio.paused) {
+      audio.volume = targetVolume;
       audio
         .play()
         .then(() => fadeIn(audio, targetVolume))
@@ -102,10 +123,9 @@ export function useAudioPlayer() {
     }
   };
 
-  // live volume change
   const updateVolume = (value: number) => {
-    const audio = audioRef.current;
     setTargetVolume(value);
+    const audio = audioRef.current;
     if (audio && !isFading) {
       audio.volume = value;
     }
@@ -129,8 +149,6 @@ export function useAudioPlayer() {
     playTrack(prev);
   };
 
-  let isFading = false;
-
   return {
     audioRef,
     isPlaying,
@@ -138,6 +156,7 @@ export function useAudioPlayer() {
     progress,
     duration,
     playTrack,
+    loadTrack,
     togglePlayPause,
     playNext,
     playPrev,
