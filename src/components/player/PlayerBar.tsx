@@ -1,13 +1,13 @@
-/* ========= src/renderer/components/player/PlayerBar.tsx ========= */
-
-import { Box, Grid, IconButton, Slider, Typography } from "@mui/material";
+import { Box, IconButton, Slider, Typography } from "@mui/material";
 import {
   PlayArrow,
   Pause,
   SkipNext,
   SkipPrevious,
   VolumeUp,
+  VolumeOff,
 } from "@mui/icons-material";
+import { useEffect, useState } from "react";
 
 interface Props {
   isPlaying: boolean;
@@ -21,6 +21,7 @@ interface Props {
   onNext: () => void;
   volume: number;
   setVolume: (value: number) => void;
+  cover?: string; // image url (base64 or fallback)
 }
 
 export function PlayerBar({
@@ -35,9 +36,21 @@ export function PlayerBar({
   onNext,
   volume,
   setVolume,
+  cover,
 }: Props) {
+  const [lastVolume, setLastVolume] = useState(volume);
+
   const format = (n: number) =>
     `${Math.floor(n / 60)}:${String(Math.floor(n % 60)).padStart(2, "0")}`;
+
+  const handleMuteToggle = () => {
+    if (volume > 0) {
+      setLastVolume(volume);
+      setVolume(0);
+    } else {
+      setVolume(lastVolume || 0.5);
+    }
+  };
 
   return (
     <Box
@@ -57,23 +70,35 @@ export function PlayerBar({
         gap: 3,
       }}
     >
-      {/* Track info (left) */}
-      <Box sx={{ minWidth: 200 }}>
-        <Typography variant="subtitle1" color="white">
-          {title || "No track playing"}
-        </Typography>
-        <Typography variant="body2" color="gray">
-          {artist || ""}
-        </Typography>
+      {/* Track info + cover */}
+      <Box
+        sx={{ display: "flex", alignItems: "center", gap: 2, minWidth: 200 }}
+      >
+        <img
+          src={cover}
+          alt="cover"
+          width={48}
+          height={48}
+          style={{ objectFit: "cover", borderRadius: 4 }}
+        />
+        <Box>
+          <Typography variant="subtitle1" color="white">
+            {title || "No track playing"}
+          </Typography>
+          <Typography variant="body2" color="gray">
+            {artist || ""}
+          </Typography>
+        </Box>
       </Box>
 
-      {/* Controls (center) */}
+      {/* Controls */}
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           flexGrow: 1,
+          maxWidth: 600,
         }}
       >
         <Box>
@@ -87,14 +112,26 @@ export function PlayerBar({
             <SkipNext />
           </IconButton>
         </Box>
+
         <Slider
           value={progress}
+          min={0}
           max={duration || 1}
           onChange={(_, val) => onSeek((val as number) / duration)}
-          sx={{ color: "green", width: 400 }}
+          sx={{
+            color: "#1db954",
+            width: "100%",
+            mt: 1,
+          }}
         />
+
         <Box
-          sx={{ display: "flex", justifyContent: "space-between", width: 400 }}
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            width: "100%",
+            px: 1,
+          }}
         >
           <Typography variant="caption" color="gray.400">
             {format(progress)}
@@ -105,9 +142,17 @@ export function PlayerBar({
         </Box>
       </Box>
 
-      {/* Volume (right) */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <VolumeUp sx={{ color: "white" }} />
+      {/* Volume */}
+      <Box
+        sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 120 }}
+      >
+        <IconButton onClick={handleMuteToggle}>
+          {volume > 0 ? (
+            <VolumeUp sx={{ color: "white" }} />
+          ) : (
+            <VolumeOff sx={{ color: "white" }} />
+          )}
+        </IconButton>
         <Slider
           min={0}
           max={1}

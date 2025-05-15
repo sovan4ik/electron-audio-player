@@ -25,13 +25,15 @@ contextBridge.exposeInMainWorld("ipcRenderer", {
 contextBridge.exposeInMainWorld("electronAPI", {
   saveLikes: (data: string[]) => ipcRenderer.send("save-likes", data),
   loadLikes: () => ipcRenderer.invoke("load-likes"),
-  
+
   saveLastPlayed: (data: { file: string; position: number }) =>
     ipcRenderer.send("save-last-played", data),
   loadLastPlayed: () => ipcRenderer.invoke("load-last-played"),
 
   saveVolume: (volume: number) => ipcRenderer.send("save-volume", volume),
   loadVolume: () => ipcRenderer.invoke("load-volume"),
+
+  getCover: (filePath: string) => ipcRenderer.invoke("get-cover", filePath),
 });
 
 // --------- Preload scripts loading ---------

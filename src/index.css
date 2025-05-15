@@ -82,3 +82,15 @@ code {
     @apply bg-gray-200 text-black;
   }
 }
+
+
+@keyframes bounce-play {
+  0%   { transform: scaleY(1); }
+  10%  { transform: scaleY(2.4); }
+  25%  { transform: scaleY(0.3); }
+  40%  { transform: scaleY(1.9); }
+  55%  { transform: scaleY(0.1); }
+  70%  { transform: scaleY(1.6); }
+  85%  { transform: scaleY(0.2); }
+  100% { transform: scaleY(1); }
+}

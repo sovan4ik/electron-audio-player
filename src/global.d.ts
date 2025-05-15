@@ -9,6 +9,7 @@ declare global {
       loadLastPlayed: () => Promise<{ file: string; position: number } | null>;
       saveVolume: (volume: number) => void;
       loadVolume: () => Promise<number>;
+      getCover: (filePath: string) => Promise<string>;
     };
   }
 }

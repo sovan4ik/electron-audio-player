@@ -15,7 +15,9 @@ interface Props {
   liked: Set<string>;
   toggleLike: (track: Track) => void;
   onPlay: (track: Track) => void;
+  onPause: () => void;
   currentTrackFile?: string;
+  isPlaying: boolean;
 }
 
 export function TrackList({
@@ -24,7 +26,9 @@ export function TrackList({
   liked,
   toggleLike,
   onPlay,
+  onPause,
   currentTrackFile,
+  isPlaying,
 }: Props) {
   return (
     <div>
@@ -33,13 +37,15 @@ export function TrackList({
           {title}
         </Typography>
       )}
-      <Table sx={{ minWidth: 650 }}>
+      <Table sx={{ minWidth: 650 , mb: "40px"}}>
         <TableHead>
           <TableRow>
-            <TableCell sx={{ color: "gray" }}>#</TableCell>
+            <TableCell size="small" sx={{ color: "gray" }}>
+              #
+            </TableCell>
             <TableCell sx={{ color: "gray" }}>Title</TableCell>
-            <TableCell sx={{ color: "gray" }}>Artist</TableCell>
-            <TableCell sx={{ color: "gray" }}>Genre</TableCell>
+            <TableCell sx={{ color: "gray" }}>Album</TableCell>
+            {/* <TableCell sx={{ color: "gray" }}>Genre</TableCell> */}
             <TableCell sx={{ color: "gray" }} align="right">
               Like
             </TableCell>
@@ -51,10 +57,12 @@ export function TrackList({
               key={track.file}
               track={track}
               index={index}
+              current={track.file === currentTrackFile}
+              isPlaying={track.file === currentTrackFile && isPlaying}
+              onPlay={() => onPlay(track)}
+              onPause={() => onPause()}
               liked={liked.has(track.file)}
-              current={currentTrackFile === track.file}
-              onPlay={onPlay}
-              toggleLike={toggleLike}
+              toggleLike={() => toggleLike(track)}
             />
           ))}
         </TableBody>

@@ -5,6 +5,7 @@ import path from "node:path";
 import os from "node:os";
 import { update } from "./update";
 import fs from "fs";
+import * as mm from "music-metadata";
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -159,5 +160,21 @@ ipcMain.handle("load-volume", () => {
     return JSON.parse(content).volume ?? 0.5;
   } catch {
     return 0.5;
+  }
+});
+
+ipcMain.handle("get-cover", async (_event, filePath) => {
+  try {
+    const buffer = fs.readFileSync(filePath);
+    const metadata = await mm.parseBuffer(buffer, "audio/mpeg");
+    const picture = metadata.common.picture?.[0];
+    if (picture) {
+      const base64 = Buffer.from(picture.data).toString("base64");
+      return `data:${picture.format};base64,${base64}`;
+    }
+    return "/assets/images/no-cover.png";
+  } catch (e) {
+    console.error("Error reading cover:", e);
+    return "/assets/images/no-cover.png";
   }
 });
