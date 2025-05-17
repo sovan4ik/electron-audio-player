@@ -1,81 +1,92 @@
-import React, { useRef, useEffect } from "react";
+import { useEffect, useRef } from "react";
 
-interface WaveformVisualizerProps {
-  audioSrc: string;
+interface Props {
+  audioRef: React.RefObject<HTMLAudioElement>;
   width?: number;
   height?: number;
-  barColor?: string;
-  backgroundColor?: string;
 }
 
-const WaveformVisualizer: React.FC<WaveformVisualizerProps> = ({
-  audioSrc,
-  width = 800,
-  height = 200,
-  barColor = "#1db954",
-  backgroundColor = "#000000",
-}) => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const animationIdRef = useRef<number>();
+export function WaveformVisualizer({
+  audioRef,
+  width = 600,
+  height = 150,
+}: Props) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const audio = audioRef.current;
     if (!canvas || !audio) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-    const audioContext = new (window.AudioContext ||
-      (window as any).webkitAudioContext)();
-    const source = audioContext.createMediaElementSource(audio);
-    const analyser = audioContext.createAnalyser();
+    if (!audioCtxRef.current) {
+      const audioCtx = new AudioContext();
+      const analyser = audioCtx.createAnalyser();
+      const source = audioCtx.createMediaElementSource(audio);
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination);
+      analyser.fftSize = 128;
 
-    source.connect(analyser);
-    analyser.connect(audioContext.destination);
-    analyser.fftSize = 256;
+      audioCtxRef.current = audioCtx;
+      analyserRef.current = analyser;
+    }
 
+    const analyser = analyserRef.current!;
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
-
-    const canvasCtx = canvas.getContext("2d");
-    if (!canvasCtx) return;
+    let animationId: number;
 
     const draw = () => {
-      animationIdRef.current = requestAnimationFrame(draw);
-
+      animationId = requestAnimationFrame(draw);
       analyser.getByteFrequencyData(dataArray);
 
-      canvasCtx.fillStyle = backgroundColor;
-      canvasCtx.fillRect(0, 0, width, height);
+      ctx.clearRect(0, 0, width, height);
 
-      const barWidth = (width / bufferLength) * 2.5;
-      let x = 0;
+      const gradient = ctx.createLinearGradient(0, 0, width, 0);
+      gradient.addColorStop(0, "#00c6ff");
+      gradient.addColorStop(1, "#ff5c93");
 
-      for (let i = 0; i < bufferLength; i++) {
-        const barHeight = (dataArray[i] / 255) * height;
-        canvasCtx.fillStyle = barColor;
-        canvasCtx.fillRect(x, height - barHeight, barWidth, barHeight);
-        x += barWidth + 1;
+      const barWidth = 4;
+      const gap = 2;
+      const totalBars = Math.floor(width / (barWidth + gap));
+      const centerX = width / 2;
+      const centerY = height / 2;
+
+      ctx.fillStyle = gradient;
+
+      for (let i = 0; i < totalBars / 2; i++) {
+        const index = Math.floor((i / (totalBars / 2)) * bufferLength);
+        const value = dataArray[index] / 255;
+        const barHeight = value * centerY;
+
+        // Left side
+        const xL = centerX - (i + 1) * (barWidth + gap);
+        ctx.fillRect(xL, centerY - barHeight, barWidth, barHeight * 2);
+
+        // Right side
+        const xR = centerX + i * (barWidth + gap);
+        ctx.fillRect(xR, centerY - barHeight, barWidth, barHeight * 2);
       }
     };
 
     draw();
 
-    return () => {
-      if (animationIdRef.current) {
-        cancelAnimationFrame(animationIdRef.current);
-      }
-      analyser.disconnect();
-      source.disconnect();
-      audioContext.close();
-    };
-  }, [audioSrc, width, height, barColor, backgroundColor]);
+    return () => cancelAnimationFrame(animationId);
+  }, [audioRef, width, height]);
 
   return (
-    <div>
-      <audio ref={audioRef} src={audioSrc} controls />
-      <canvas ref={canvasRef} width={width} height={height} />
-    </div>
+    <canvas
+      ref={canvasRef}
+      width={width}
+      height={height}
+      style={{
+        display: "block",
+        margin: "0 auto",
+        backgroundColor: "transparent",
+      }}
+    />
   );
-};
-
-export default WaveformVisualizer;
+}

@@ -24,6 +24,10 @@ declare global {
       unignoreTrack: (track: string) => void;
       toggleIgnore: (track: string) => void;
 
+      // Play mode
+      loadPlayMode: () => Promise<PlayMode>;
+      savePlayMode: (mode: PlayMode) => void;
+
       // Cover
       getCover: (filePath: string) => Promise<string>;
 

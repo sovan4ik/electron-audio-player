@@ -7,6 +7,7 @@ import { useCover } from "@/hooks/useCover";
 import { useAppSettings } from "@/hooks/useAppSettings";
 import { useEffect, useRef } from "react";
 import { useTracks } from "@/hooks/useTracks";
+import { WaveformVisualizer } from "@/components/WaveformVisualizer";
 
 export default function RootLayout() {
   const player = useAudioPlayerContext();
@@ -60,6 +61,7 @@ export default function RootLayout() {
   return (
     <Box display="flex" flexDirection="column" height="100vh">
       <TopBar />
+      <WaveformVisualizer audioRef={player.audioRef}  />
       <Box flex={1} overflow="auto">
         <Outlet />
       </Box>

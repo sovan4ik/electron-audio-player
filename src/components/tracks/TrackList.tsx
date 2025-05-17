@@ -8,6 +8,7 @@ import {
 } from "@mui/material";
 import { Track } from "../../types";
 import { TrackRow } from "./TrackRow";
+import { Clock3 } from "lucide-react";
 
 interface Props {
   title?: string;
@@ -38,7 +39,7 @@ export function TrackList({
           {title}
         </Typography>
       )}
-      <Table  sx={{ minWidth: 650, mb: "40px" }}>
+      <Table sx={{ minWidth: 650, mb: "40px" }}>
         <TableHead>
           <TableRow>
             <TableCell align="center" size="small" sx={{ color: "gray" }}>
@@ -46,12 +47,10 @@ export function TrackList({
             </TableCell>
             <TableCell sx={{ color: "gray" }}>Title</TableCell>
             <TableCell sx={{ color: "gray" }}>Album</TableCell>
-            {/* <TableCell sx={{ color: "gray" }}>Genre</TableCell> */}
-            <TableCell sx={{ color: "gray" }} align="right">
-              Like
-            </TableCell>
-            <TableCell sx={{ color: "gray" }} align="right">
-              Duration
+            <TableCell sx={{ color: "gray" }}>Genre</TableCell>
+            <TableCell sx={{ color: "gray" }}>Like</TableCell>
+            <TableCell size="small" sx={{ color: "gray" }}>
+              <Clock3 size={18} />
             </TableCell>
           </TableRow>
         </TableHead>

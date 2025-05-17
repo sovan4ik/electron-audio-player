@@ -1,12 +1,4 @@
-// export interface Track {
-//   title: string;
-//   artist: string;
-//   file: string;
-//   genre: string;
-//   albumId?: string;
-// }
-
-export interface Track {
+export type Track = {
   title: string;
   artists: string[];
   genres: string[];
@@ -14,4 +6,15 @@ export interface Track {
   duration: number;
   cover: string;
   file: string;
+};
+
+export type LastPlayed = {
+  file: string;
+  position: number;
+};
+
+export enum PlayMode {
+  Normal = "normal",
+  Shuffle = "shuffle",
+  SmartShuffle = "smartShuffle",
 }

@@ -1,4 +1,4 @@
-import { Track } from "@/types";
+import { PlayMode, Track } from "@/types";
 import { ipcRenderer, contextBridge } from "electron";
 
 // --------- Expose some API to the Renderer process ---------
@@ -48,6 +48,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.send("unignore-track", track),
   toggleIgnore: (track: string): void =>
     ipcRenderer.send("toggle-ignore", track),
+
+  // Play mode
+  loadPlayMode: (): Promise<PlayMode> => ipcRenderer.invoke("load-play-mode"),
+  savePlayMode: (mode: PlayMode): void =>
+    ipcRenderer.send("save-play-mode", mode),
 
   // Cover
   getCover: (filePath: string): Promise<string> =>

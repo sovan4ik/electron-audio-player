@@ -145,6 +145,10 @@ ipcMain.on("ignore-track", (_e, track) => metaStore.addIgnored(track));
 ipcMain.on("unignore-track", (_e, track) => metaStore.removeIgnored(track));
 ipcMain.on("toggle-ignore", (_e, track) => metaStore.toggleIgnored(track));
 
+// Play mode
+ipcMain.handle("load-play-mode", () => metaStore.getPlayMode());
+ipcMain.on("save-play-mode", (_e, mode) => metaStore.setPlayMode(mode));
+
 // Cover
 ipcMain.handle("get-cover", (_e, filePath) => metaStore.getCover(filePath));
 

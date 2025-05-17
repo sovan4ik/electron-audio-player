@@ -2,7 +2,7 @@ import { app } from "electron";
 import fs from "fs";
 import path from "path";
 import * as mm from "music-metadata";
-import { Track } from "@/types";
+import { LastPlayed, PlayMode, Track } from "../../src/types";
 
 // --- Paths ---
 const baseDir = app.getPath("userData");
@@ -35,7 +35,8 @@ const writeList = (file: string, list: string[]) => writeJson(file, list);
 // --- Meta ---
 type MetaData = {
   volume?: number;
-  lastPlayed?: { file: string; position: number };
+  lastPlayed?: LastPlayed;
+  playMode?: PlayMode;
 };
 
 const readMeta = (): MetaData => readJson(paths.meta, {});
@@ -166,6 +167,9 @@ export const metaStore = {
       writeList(paths.ignored, [...current, track]);
     }
   },
+
+  getPlayMode: () => getMetaValue("playMode") ?? PlayMode.Normal,
+  setPlayMode: (mode: PlayMode) => setMetaValue("playMode", mode),
 
   // Cover
   getCover,

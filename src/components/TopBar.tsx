@@ -3,6 +3,7 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
 import { Link } from "react-router-dom";
+import { PlaybackModeSelector } from "./PlaybackModeSelector";
 
 export function TopBar() {
   return (
@@ -21,6 +22,12 @@ export function TopBar() {
           <IconButton component={Link} to="/" sx={{ color: "white" }}>
             <LibraryMusicIcon />
           </IconButton>
+        </Tooltip>
+      </Box>
+
+      <Box>
+        <Tooltip title="Home">
+          <PlaybackModeSelector />
         </Tooltip>
       </Box>
 

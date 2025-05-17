@@ -25,6 +25,7 @@
     "@mui/icons-material": "^7.1.0",
     "@mui/material": "^7.1.0",
     "electron-updater": "^6.3.9",
+    "lucide-react": "^0.510.0",
     "music-metadata": "^11.2.1",
     "react-router-dom": "^7.6.0",
     "react-slider": "^2.0.6"

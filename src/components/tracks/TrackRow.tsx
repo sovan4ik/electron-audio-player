@@ -39,7 +39,7 @@ export function TrackRow({
   toggleLike,
 }: TrackRowProps) {
   const [hovered, setHovered] = useState(false);
-  const cover = useCover(track);
+  // const cover = useCover(track);
 
   const handlePlay = (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -58,12 +58,15 @@ export function TrackRow({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       sx={{
-        // backgroundColor: current ? "#2a2a2a" : "transparent",
-        transition: "background-color 0.2s",
-        cursor: "pointer",
+        backgroundColor: "transparent",
+        transition: "background-color 0.3s ease",
+        // cursor: "pointer",
+        ":hover": {
+          backgroundColor: "#2a2a2a",
+        },
       }}
     >
-      <TableCell align="center" size="small" sx={{ width: 50 }}>
+      <TableCell align="center" size="small" sx={{ width: 50, border: 0 }}>
         {hovered && current && isPlaying ? (
           <Tooltip title={`Pause ${track.title}`}>
             <Pause
@@ -90,11 +93,11 @@ export function TrackRow({
       </TableCell>
 
       {/* Title & Artist */}
-      <TableCell sx={{ color: "white" }}>
+      <TableCell align="left" sx={{ color: "white" }}>
         <Box display="flex" alignItems="center" gap={2}>
           <Avatar
             variant="rounded"
-            src={cover || "/no-cover.png"}
+            src={track.cover || "/no-cover.png"}
             alt={track.title}
             sx={{ width: 48, height: 48 }}
           />
@@ -123,9 +126,13 @@ export function TrackRow({
         </Box>
       </TableCell>
 
-      <TableCell sx={{ color: "white" }}>{track.album}</TableCell>
-
-      <TableCell align="right">
+      <TableCell align="left" sx={{ color: "white" }}>
+        {track.album}
+      </TableCell>
+      <TableCell align="left" sx={{ color: "white" }}>
+        {track.genres.join(", ")}
+      </TableCell>
+      <TableCell align="left">
         <IconButton
           onClick={(e) => {
             e.stopPropagation();
@@ -139,7 +146,7 @@ export function TrackRow({
           )}
         </IconButton>
       </TableCell>
-      <TableCell sx={{ color: "white" }}>
+      <TableCell align="left" sx={{ color: "white" }}>
         {formatDuration(track.duration)}
       </TableCell>
     </TableRow>

@@ -11,6 +11,8 @@ import { useEffect, useState } from "react";
 import { DurationProgress } from "../DurationProgress/DurationProgress";
 import { useAudioProgress } from "@/hooks/useAudioProgress";
 import formatDuration from "@/utils/formatDuration";
+import { VolumeSlider } from "../VolumeSlider/VolumeSlider";
+import { Volume1, Volume2, VolumeX } from "lucide-react";
 
 interface Props {
   audioRef: React.RefObject<HTMLAudioElement>;
@@ -69,15 +71,18 @@ export function PlayerBar({
         bgcolor: "#181818",
         borderTop: "1px solid #333",
         zIndex: 10,
-        display: "flex",
+        display: "grid",
+        gridTemplateColumns: "auto 1fr auto",
         alignItems: "center",
-        justifyContent: "space-between",
-        gap: 3,
       }}
     >
-      {/* Track info + cover */}
       <Box
-        sx={{ display: "flex", alignItems: "center", gap: 2, minWidth: 200 }}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 2,
+          minWidth: 0,
+        }}
       >
         <img
           src={cover}
@@ -86,106 +91,143 @@ export function PlayerBar({
           height={48}
           style={{ objectFit: "cover", borderRadius: 4 }}
         />
-        <Box>
-          <Typography variant="subtitle1" color="white">
+        <Box sx={{ overflow: "hidden" }}>
+          <Typography
+            variant="subtitle1"
+            color="white"
+            sx={{
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              maxWidth: 180,
+            }}
+          >
             {title || "No track playing"}
           </Typography>
-          <Typography variant="body2" color="gray">
-            {artists || ""}
+          <Typography
+            variant="body2"
+            color="gray"
+            sx={{
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              maxWidth: 180,
+            }}
+          >
+            {artists?.join(", ") || ""}
           </Typography>
         </Box>
       </Box>
 
-      {/* Controls */}
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          flexGrow: 1,
+          justifyContent: "center",
           maxWidth: 600,
+          mx: "auto",
+          width: "100%",
         }}
       >
-        <Box>
-          <SkipPrevious onClick={onPrev} sx={{ color: "white" }} />
+        <Box display="flex" justifyContent="center" alignItems="center" gap={3}>
+          <SkipPrevious
+            onClick={onPrev}
+            sx={{
+              color: "#888888",
+              cursor: "pointer",
+              transition: "color 0.2s ease-in-out",
+              "&:hover": {
+                color: "#ffffff",
+              },
+            }}
+          />
 
-          <IconButton onClick={togglePlayPause} sx={{ bgcolor: "white" }}>
+          <IconButton
+            onClick={togglePlayPause}
+            sx={{
+              bgcolor: "#fff",
+              width: 32,
+              height: 32,
+              transition:
+                "background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
+              "&:hover": {
+                bgcolor: "#e5e5e5",
+              },
+              boxShadow: 4,
+            }}
+          >
             {isPlaying ? (
-              <Pause sx={{ color: theme.palette.primary.contrastText }} />
+              <Pause sx={{ color: "#000", fontSize: 24 }} />
             ) : (
-              <PlayArrow sx={{ color: theme.palette.primary.contrastText }} />
+              <PlayArrow sx={{ color: "#000", fontSize: 24 }} />
             )}
           </IconButton>
 
-          <SkipNext onClick={onNext} sx={{ color: "white" }} />
+          <SkipNext
+            onClick={onNext}
+            sx={{
+              color: "#888888",
+              cursor: "pointer",
+              transition: "color 0.2s ease-in-out",
+              "&:hover": {
+                color: "#ffffff",
+              },
+            }}
+          />
         </Box>
 
-        {/* <Slider
-          value={progress}
-          min={0}
-          max={duration || 1}
-          onChange={(_, val) => onSeek((val as number) / duration)}
-          sx={{
-            color: "#1db954",
-            width: "100%",
-            mt: 1,
-          }}
-        /> */}
-
-        {/* <Slider
-          value={dragProgress !== null ? dragProgress : progress}
-          min={0}
-          max={duration || 1}
-          step={0.1}
-          onChange={(_, val) => setDragProgress(val as number)}
-          onChangeCommitted={(_, val) => {
-            setDragProgress(null);
-            onSeek((val as number) / duration);
-          }}
-          sx={{ color: "green", width: 400 }}
-        /> */}
-
-        <DurationProgress
-          value={progress}
-          duration={duration}
-          onSeek={onSeek}
-        />
         <Box
           sx={{
             display: "flex",
+            alignItems: "center",
             justifyContent: "space-between",
             width: "100%",
-            px: 1,
+            minxWidth: "400px",
+            maxWidth: "600px",
+            px: 2,
+            gap: 0.5,
+            mt: 0.5,
           }}
         >
-          <Typography variant="caption" color="gray.400">
+          <Typography fontSize={12} color="#979797" minWidth={40}>
             {formatDuration(progress)}
           </Typography>
-          <Typography variant="caption" color="gray.400">
+
+          <Box sx={{ flex: 1, mx: 1 }}>
+            <DurationProgress
+              value={progress}
+              duration={duration}
+              onSeek={onSeek}
+            />
+          </Box>
+
+          <Typography fontSize={12} color="#979797" minWidth={40}>
             {formatDuration(duration)}
           </Typography>
         </Box>
       </Box>
 
-      {/* Volume */}
       <Box
-        sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 120 }}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          gap: 1,
+          minWidth: 120,
+        }}
       >
-        <IconButton onClick={handleMuteToggle}>
-          {volume > 0 ? (
-            <VolumeUp sx={{ color: "white" }} />
+        <IconButton size="small" onClick={handleMuteToggle} sx={{ p: 0.5 }}>
+          {volume === 0 ? (
+            <VolumeX size={18} color="white" />
+          ) : volume <= 0.5 ? (
+            <Volume1 size={18} color="white" />
           ) : (
-            <VolumeOff sx={{ color: "white" }} />
+            <Volume2 size={18} color="white" />
           )}
         </IconButton>
-        <Slider
-          min={0}
-          max={1}
-          step={0.01}
-          value={volume}
-          onChange={(_, val) => setVolume(val as number)}
-          sx={{ width: 100, color: "white" }}
-        />
+
+        <VolumeSlider value={volume} onChange={setVolume} />
       </Box>
     </Box>
   );
