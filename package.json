@@ -28,7 +28,8 @@
     "lucide-react": "^0.510.0",
     "music-metadata": "^11.2.1",
     "react-router-dom": "^7.6.0",
-    "react-slider": "^2.0.6"
+    "react-slider": "^2.0.6",
+    "recharts": "^2.15.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.48.2",

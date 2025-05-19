@@ -28,6 +28,11 @@ declare global {
       loadPlayMode: () => Promise<PlayMode>;
       savePlayMode: (mode: PlayMode) => void;
 
+      // Track stats
+      loadTrackStats: () => Promise<Record<string, TrackStats>>;
+      saveTrackStats: (stats: Record<string, TrackStats>) => void;
+      updateTrackStats: (file: string, update: Partial<TrackStats>) => void;
+
       // Cover
       getCover: (filePath: string) => Promise<string>;
 

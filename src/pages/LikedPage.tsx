@@ -17,7 +17,10 @@ export default function LikedPage() {
     load();
   }, []);
 
-  const likedTracks = tracks.filter((track) => liked.has(track.file));
+  const likedTracks = Array.from(liked)
+    .map((file) => tracks.find((track) => track.file === file))
+    .filter((track) => track !== undefined)
+    .reverse();
 
   const toggleLike = (track: Track) => {
     const newLiked = new Set(liked);

@@ -18,3 +18,11 @@ export enum PlayMode {
   Shuffle = "shuffle",
   SmartShuffle = "smartShuffle",
 }
+
+export interface TrackStats {
+  playCount: number;
+  skipCount: number;
+  liked: boolean;
+  lastPlayed: number; // timestamp
+  totalListenTime: number; // in seconds
+}

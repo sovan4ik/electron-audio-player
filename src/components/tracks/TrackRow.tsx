@@ -86,7 +86,7 @@ export function TrackRow({
         ) : isActive ? (
           <NowPlayingBars active />
         ) : isPaused ? (
-          <Typography sx={{ color: "#1db954" }}>{index + 1}</Typography>
+          <Typography sx={{ color: "#a259ff" }}>{index + 1}</Typography>
         ) : (
           <Typography sx={{ color: "white" }}>{index + 1}</Typography>
         )}
@@ -106,7 +106,7 @@ export function TrackRow({
               <Typography
                 variant="body1"
                 sx={{
-                  color: isActive || isPaused ? "#1db954" : "white",
+                  color: isActive || isPaused ? "#a259ff" : "white",
                   // fontWeight: isActive ? 500 : 400,
                 }}
               >
@@ -140,7 +140,7 @@ export function TrackRow({
           }}
         >
           {liked ? (
-            <FavoriteIcon sx={{ color: "#1db954" }} />
+            <FavoriteIcon sx={{ color: "#a259ff" }} />
           ) : (
             <FavoriteBorderIcon sx={{ color: "white" }} />
           )}

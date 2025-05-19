@@ -35,7 +35,7 @@ export function VolumeSlider({ value, onChange }: Props) {
           color: "#888",
           transition: "color 0.2s",
           "&:hover": {
-            color: "#1db954",
+            color: "#a259ff",
           },
           "& .MuiSlider-thumb": {
             width: 12,
@@ -60,7 +60,7 @@ export function VolumeSlider({ value, onChange }: Props) {
             top: -24,
             left: `calc(${internal * 100}% - 12px)`,
             transform: "translateX(0%)",
-            backgroundColor: "#1db954",
+            backgroundColor: "#a259ff",
             color: "white",
             borderRadius: 1,
             fontSize: 12,

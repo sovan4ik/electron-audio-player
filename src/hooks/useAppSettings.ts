@@ -10,7 +10,13 @@ export function useAppSettings() {
   const isReady = volume !== null;
 
   useEffect(() => {
-    window.electronAPI.loadVolume().then(setVolumeState);
+    window.electronAPI.loadVolume().then((loadedVolume) => {
+      setVolumeState((prev) => {
+        if (prev === loadedVolume) return prev;
+        return loadedVolume;
+      });
+    });
+
     window.electronAPI.loadLastPlayed().then(setLastPlayedState);
     window.electronAPI.loadPlayMode().then(setPlayModeState);
   }, []);

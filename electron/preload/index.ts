@@ -1,4 +1,4 @@
-import { PlayMode, Track } from "@/types";
+import { PlayMode, Track, TrackStats } from "@/types";
 import { ipcRenderer, contextBridge } from "electron";
 
 // --------- Expose some API to the Renderer process ---------
@@ -53,6 +53,15 @@ contextBridge.exposeInMainWorld("electronAPI", {
   loadPlayMode: (): Promise<PlayMode> => ipcRenderer.invoke("load-play-mode"),
   savePlayMode: (mode: PlayMode): void =>
     ipcRenderer.send("save-play-mode", mode),
+
+  // Track stats
+  loadTrackStats: (): Promise<Record<string, TrackStats>> =>
+    ipcRenderer.invoke("load-track-stats"),
+  saveTrackStats: (stats: Record<string, TrackStats>) =>
+    ipcRenderer.send("save-track-stats", stats),
+
+  updateTrackStats: (file: string, update: Partial<TrackStats>) =>
+    ipcRenderer.send("update-track-stats", { file, update }),
 
   // Cover
   getCover: (filePath: string): Promise<string> =>

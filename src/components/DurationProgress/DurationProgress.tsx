@@ -1,43 +1,3 @@
-// import React, { useState, useEffect } from "react";
-// import ReactSlider from "react-slider";
-// import "./DurationProgress.css";
-
-// interface Props {
-//   value: number;
-//   duration: number;
-//   onSeek: (percent: number) => void;
-// }
-
-// function Component({ value, duration, onSeek }: Props) {
-//   const [internalValue, setInternalValue] = useState(value);
-//   const [dragging, setDragging] = useState(false);
-
-//   useEffect(() => {
-//     if (!dragging) {
-//       setInternalValue(value);
-//     }
-//   }, [value, dragging]);
-
-//   return (
-//     <ReactSlider
-//       className="duration-progress"
-//       trackClassName="duration-track"
-//       thumbClassName="duration-thumb"
-//       value={internalValue}
-//       min={0}
-//       max={duration || 1}
-//       step={0.1}
-//       onBeforeChange={() => setDragging(true)}
-//       onChange={(val) => setInternalValue(val)}
-//       onAfterChange={(val) => {
-//         setDragging(false);
-//         onSeek(val / duration);
-//       }}
-//     />
-//   );
-// }
-
-// export const DurationProgress = React.memo(Component);
 import { Box, Slider, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 
@@ -81,14 +41,14 @@ export function DurationProgress({ value, duration, onSeek }: Props) {
         }}
         sx={{
           height: 4,
-          color: "#1db954",
+          color: "#a259ff",
           "& .MuiSlider-thumb": {
             width: 12,
             height: 12,
             backgroundColor: "#fff",
             boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
             "&:hover": {
-              boxShadow: "0 0 0 8px rgba(30, 215, 96, 0.16)",
+              boxShadow: "0 0 0 8px rgba(156, 30, 215, 0.16)",
             },
           },
           "& .MuiSlider-rail": {
@@ -106,7 +66,7 @@ export function DurationProgress({ value, duration, onSeek }: Props) {
             top: -24,
             left: `${(internal / duration) * 100}%`,
             transform: "translateX(-50%)",
-            backgroundColor: "#1db954",
+            backgroundColor: "#a259ff",
             color: "white",
             borderRadius: 1,
             fontSize: 12,

@@ -149,6 +149,13 @@ ipcMain.on("toggle-ignore", (_e, track) => metaStore.toggleIgnored(track));
 ipcMain.handle("load-play-mode", () => metaStore.getPlayMode());
 ipcMain.on("save-play-mode", (_e, mode) => metaStore.setPlayMode(mode));
 
+// Track stats
+ipcMain.handle("load-track-stats", () => metaStore.readTrackStats());
+ipcMain.on("save-track-stats", (_e, stats) => metaStore.writeTrackStats(stats));
+ipcMain.on("update-track-stats", (_e, { file, update }) => {
+  metaStore.updateTrackStats(file, update);
+});
+
 // Cover
 ipcMain.handle("get-cover", (_e, filePath) => metaStore.getCover(filePath));
 

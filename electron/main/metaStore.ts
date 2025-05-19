@@ -2,7 +2,8 @@ import { app } from "electron";
 import fs from "fs";
 import path from "path";
 import * as mm from "music-metadata";
-import { LastPlayed, PlayMode, Track } from "../../src/types";
+import { LastPlayed, PlayMode, Track, TrackStats } from "../../src/types";
+import { artistGenreMap } from "../../src/data/genre";
 
 // --- Paths ---
 const baseDir = app.getPath("userData");
@@ -13,6 +14,7 @@ const paths = {
   meta: path.join(baseDir, "meta.json"),
   liked: path.join(baseDir, "likedTracks.json"),
   ignored: path.join(baseDir, "ignoredTracks.json"),
+  trackStats: path.join(baseDir, "trackStats.json"),
 };
 
 // --- Helpers ---
@@ -49,6 +51,34 @@ const getMetaValue = <K extends keyof MetaData>(key: K): MetaData[K] =>
 const setMetaValue = <K extends keyof MetaData>(key: K, value: MetaData[K]) =>
   updateMeta({ [key]: value });
 
+// --- Track Stats ---
+const readTrackStats = (): Record<string, TrackStats> =>
+  readJson(paths.trackStats, {});
+
+const writeTrackStats = (data: Record<string, TrackStats>) =>
+  writeJson(paths.trackStats, data);
+
+function updateTrackStats(file: string, update: Partial<TrackStats>) {
+  const stats: Record<string, TrackStats> = readJson(paths.trackStats, {});
+  const prev: TrackStats = stats[file] || {
+    playCount: 0,
+    skipCount: 0,
+    lastPlayed: null,
+    totalListenTime: 0,
+  };
+
+  const next: TrackStats = {
+    ...prev,
+    playCount: prev.playCount + (update.playCount || 0),
+    skipCount: prev.skipCount + (update.skipCount || 0),
+    totalListenTime: prev.totalListenTime + (update.totalListenTime || 0),
+    lastPlayed: update.lastPlayed || prev.lastPlayed,
+  };
+
+  stats[file] = next;
+  writeJson(paths.trackStats, stats);
+}
+
 // --- Cover extraction ---
 async function getCover(filePath: string): Promise<string> {
   try {
@@ -80,14 +110,27 @@ async function loadTracksWithMetadata(): Promise<Track[]> {
       const filePath = path.join(TRACKS_DIR, file);
       try {
         const metadata = await mm.parseFile(filePath);
+
+        const artists =
+          metadata.common.artists ||
+          (metadata.common.artist
+            ? [metadata.common.artist]
+            : ["Unknown Artist"]);
+
+        const genresFromMetadata = metadata.common.genre?.filter(Boolean) || [];
+
+        const genresFromMap = artists
+          .flatMap((artist) => artistGenreMap[artist] || [])
+          .filter(Boolean);
+
+        const allGenres = Array.from(
+          new Set([...genresFromMetadata, ...genresFromMap])
+        );
+
         return {
           title: metadata.common.title || file,
-          artists:
-            metadata.common.artists ||
-            (metadata.common.artist
-              ? [metadata.common.artist]
-              : ["Unknown Artist"]),
-          genres: metadata.common.genre || [],
+          artists,
+          genres: allGenres.length > 0 ? allGenres : ["unknown"],
           album: metadata.common.album || "Unknown Album",
           duration: metadata.format.duration || 0,
           file: `/assets/tracks/${file}`,
@@ -170,6 +213,11 @@ export const metaStore = {
 
   getPlayMode: () => getMetaValue("playMode") ?? PlayMode.Normal,
   setPlayMode: (mode: PlayMode) => setMetaValue("playMode", mode),
+
+  // Track Stats
+  readTrackStats,
+  writeTrackStats,
+  updateTrackStats,
 
   // Cover
   getCover,

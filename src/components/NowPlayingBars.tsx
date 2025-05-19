@@ -13,7 +13,7 @@ export function NowPlayingBars({ active = true }: { active: boolean }) {
             width: 1,
             height: 8,
             margin: "0 2px",
-            backgroundColor: "#1db954",
+            backgroundColor: "#a259ff",
             animation: active
               ? `bounce-play ${durations[i]} infinite ease-in-out`
               : "none",

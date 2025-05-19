@@ -1,17 +1,60 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Track } from "../types";
+import { usePlaybackQueues } from "./usePlaybackQueues";
+import { useTrackStats } from "./useTrackStats";
+import { useTrackStatsContext } from "@/contexts/TrackStatsProvider";
 
 export function useAudioPlayer() {
+  const { currentQueue } = usePlaybackQueues();
+  const { updateStats } = useTrackStatsContext();
+
   const audioRef = useRef<HTMLAudioElement>(null);
+  const autoStart = false;
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [targetVolume, setTargetVolume] = useState<number | null>(null);
 
-  let isFading = false;
+  const listenStart = useRef<number | null>(null);
+  const playedAlready = useRef<boolean>(false);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !currentTrack) return;
+
+    const interval = setInterval(() => {
+      if (!audio.paused && !audio.ended) {
+        console.log("[STATS] +1s for", currentTrack.file);
+        updateStats(currentTrack.file, { totalListenTime: 1 });
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [audioRef, currentTrack]);
+
+  const finalizeStats = () => {
+    const audio = audioRef.current;
+    if (!audio || !currentTrack) return;
+
+    const listened =
+      listenStart.current !== null
+        ? audio.currentTime - listenStart.current
+        : 0;
+
+    if (listened > 0) {
+      updateStats(currentTrack.file, {
+        totalListenTime: Math.floor(listened),
+      });
+    }
+
+    listenStart.current = null;
+    playedAlready.current = false;
+  };
 
   const playTrack = (track: Track, startTime = 0) => {
+    finalizeStats();
+
     const audio = audioRef.current;
     if (!audio || targetVolume === null) return;
 
@@ -23,62 +66,18 @@ export function useAudioPlayer() {
 
     audio.onloadedmetadata = () => {
       audio.volume = targetVolume;
-      audio.play().catch((err) => {
-        console.error("Play error:", err);
-        setIsPlaying(false);
+
+      audio.play().then(() => {
+        listenStart.current = audio.currentTime;
+        if (!playedAlready.current) {
+          updateStats(track.file, {
+            playCount: 1,
+            lastPlayed: Date.now(),
+          });
+          playedAlready.current = true;
+        }
       });
     };
-  };
-
-  const loadTrack = (track: Track, startTime = 0) => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    setCurrentTrack(track);
-    setIsPlaying(false);
-
-    audio.src = track.file;
-    audio.currentTime = startTime;
-    if (targetVolume !== null) {
-      audio.volume = targetVolume;
-    }
-  };
-
-  const fadeOut = (audio: HTMLAudioElement, duration = 400): Promise<void> => {
-    return new Promise((resolve) => {
-      const step = 50;
-      const steps = duration / step;
-      const volumeStep = audio.volume / steps;
-      isFading = true;
-
-      const interval = setInterval(() => {
-        if (audio.volume > volumeStep) {
-          audio.volume -= volumeStep;
-        } else {
-          audio.volume = 0;
-          clearInterval(interval);
-          isFading = false;
-          resolve();
-        }
-      }, step);
-    });
-  };
-
-  const fadeIn = (audio: HTMLAudioElement, target = 1, duration = 400) => {
-    const step = 50;
-    const steps = duration / step;
-    const volumeStep = target / steps;
-    isFading = true;
-
-    const interval = setInterval(() => {
-      if (audio.volume < target - volumeStep) {
-        audio.volume += volumeStep;
-      } else {
-        audio.volume = target;
-        clearInterval(interval);
-        isFading = false;
-      }
-    }, step);
   };
 
   const togglePlayPause = () => {
@@ -88,25 +87,57 @@ export function useAudioPlayer() {
     if (audio.paused) {
       setIsPlaying(true);
       audio.volume = targetVolume;
-      audio
-        .play()
-        .then(() => fadeIn(audio, targetVolume))
-        .catch((err) => {
-          console.error("Play error:", err);
-          setIsPlaying(false);
-        });
-    } else {
-      setIsPlaying(false);
-      fadeOut(audio).then(() => {
-        audio.pause();
+      audio.play().then(() => {
+        listenStart.current = audio.currentTime;
       });
+    } else {
+      const ratio = audio.currentTime / (audio.duration || 1);
+      if (ratio < 0.1 && currentTrack) {
+        updateStats(currentTrack.file, { skipCount: 1 });
+      }
+
+      finalizeStats();
+      setIsPlaying(false);
+      audio.pause();
     }
   };
-  const handleSeek = (percent: number) => {
+
+  const playNext = () => {
     const audio = audioRef.current;
-    if (audio && duration) {
-      audio.currentTime = duration * percent;
+    if (currentTrack && audio) {
+      const ratio = audio.currentTime / (audio.duration || 1);
+      if (ratio < 0.1) {
+        updateStats(currentTrack.file, { skipCount: 1 });
+      }
     }
+
+    finalizeStats();
+
+    const index = currentQueue.findIndex((t) => t.file === currentTrack?.file);
+    const next = currentQueue[index + 1] || currentQueue[0];
+    playTrack(next);
+  };
+
+  const playPrev = () => {
+    const audio = audioRef.current;
+    if (!currentTrack || !audio) return;
+
+    if (audio.currentTime > 3) {
+      audio.currentTime = 0;
+      listenStart.current = 0;
+      return;
+    }
+
+    finalizeStats();
+    const index = currentQueue.findIndex((t) => t.file === currentTrack.file);
+    const prev =
+      currentQueue[index - 1] || currentQueue[currentQueue.length - 1];
+    playTrack(prev);
+  };
+
+  const handleEnded = () => {
+    finalizeStats();
+    playNext();
   };
 
   const handleTimeUpdate = () => {
@@ -126,28 +157,15 @@ export function useAudioPlayer() {
   const updateVolume = (value: number) => {
     setTargetVolume(value);
     const audio = audioRef.current;
-    if (audio && !isFading) {
-      audio.volume = value;
-    }
+    if (audio) audio.volume = value;
   };
 
-  const playNext = (tracks: Track[]) => {
-    if (!currentTrack) return;
-    const index = tracks.findIndex((t) => t.file === currentTrack.file);
-    const next = tracks[index + 1] || tracks[0];
-    playTrack(next);
-  };
-
-  const playPrev = (tracks: Track[]) => {
-    if (!currentTrack || !audioRef.current) return;
-    if (audioRef.current.currentTime > 2) {
-      audioRef.current.currentTime = 0;
-      return;
-    }
-    const index = tracks.findIndex((t) => t.file === currentTrack.file);
-    const prev = tracks[index - 1] || tracks[tracks.length - 1];
-    playTrack(prev);
-  };
+  // ✅ Save listen time before window closes
+  useEffect(() => {
+    const onUnload = () => finalizeStats();
+    window.addEventListener("beforeunload", onUnload);
+    return () => window.removeEventListener("beforeunload", onUnload);
+  }, [currentTrack]);
 
   return {
     audioRef,
@@ -156,13 +174,19 @@ export function useAudioPlayer() {
     progress,
     duration,
     playTrack,
-    loadTrack,
+    loadTrack: playTrack,
     togglePlayPause,
     playNext,
     playPrev,
-    handleSeek,
+    handleSeek: (p: number) => {
+      const audio = audioRef.current;
+      if (audio && duration) {
+        audio.currentTime = duration * p;
+      }
+    },
     handleTimeUpdate,
     handleLoadedMetadata,
+    handleEnded,
     targetVolume,
     setTargetVolume: updateVolume,
   };

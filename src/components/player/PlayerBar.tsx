@@ -71,8 +71,7 @@ export function PlayerBar({
         bgcolor: "#181818",
         borderTop: "1px solid #333",
         zIndex: 10,
-        display: "grid",
-        gridTemplateColumns: "auto 1fr auto",
+        display: "flex",
         alignItems: "center",
       }}
     >
@@ -81,7 +80,7 @@ export function PlayerBar({
           display: "flex",
           alignItems: "center",
           gap: 2,
-          minWidth: 0,
+          flex: 1, // This ensures the left block takes equal space
         }}
       >
         <img
@@ -91,7 +90,7 @@ export function PlayerBar({
           height={48}
           style={{ objectFit: "cover", borderRadius: 4 }}
         />
-        <Box sx={{ overflow: "hidden" }}>
+        <Box sx={{ overflow: "hidden", width: 180 }}>
           <Typography
             variant="subtitle1"
             color="white"
@@ -99,7 +98,7 @@ export function PlayerBar({
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
-              maxWidth: 180,
+              maxWidth: "100%",
             }}
           >
             {title || "No track playing"}
@@ -111,7 +110,7 @@ export function PlayerBar({
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
-              maxWidth: 180,
+              maxWidth: "100%",
             }}
           >
             {artists?.join(", ") || ""}
@@ -119,12 +118,14 @@ export function PlayerBar({
         </Box>
       </Box>
 
+      {/* Centralized controls */}
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
+          flex: 2, // This will allow the central block to take more space
           maxWidth: 600,
           mx: "auto",
           width: "100%",
@@ -214,7 +215,7 @@ export function PlayerBar({
           alignItems: "center",
           justifyContent: "flex-end",
           gap: 1,
-          minWidth: 120,
+          flex: 1, // This ensures the right block takes equal space
         }}
       >
         <IconButton size="small" onClick={handleMuteToggle} sx={{ p: 0.5 }}>

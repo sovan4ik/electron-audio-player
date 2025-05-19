@@ -61,7 +61,7 @@ export default function RootLayout() {
   return (
     <Box display="flex" flexDirection="column" height="100vh">
       <TopBar />
-      <WaveformVisualizer audioRef={player.audioRef}  />
+      <WaveformVisualizer audioRef={player.audioRef} />
       <Box flex={1} overflow="auto">
         <Outlet />
       </Box>
@@ -77,8 +77,8 @@ export default function RootLayout() {
           onSeek={player.handleSeek}
           title={player.currentTrack?.title}
           artists={player.currentTrack?.artists}
-          onNext={() => player.playNext(tracks)}
-          onPrev={() => player.playPrev(tracks)}
+          onNext={() => player.playNext()}
+          onPrev={() => player.playPrev()}
           volume={volume}
           setVolume={setVolume}
         />
@@ -86,7 +86,7 @@ export default function RootLayout() {
 
       <audio
         ref={player.audioRef}
-        onEnded={() => player.playNext(tracks)}
+        onEnded={() => player.playNext()}
         onTimeUpdate={player.handleTimeUpdate}
         onLoadedMetadata={player.handleLoadedMetadata}
       />
