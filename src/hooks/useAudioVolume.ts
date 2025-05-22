@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
-import { useAppSettings } from "./useAppSettings";
-import { useAudioPlayerContext } from "@/contexts/AudioPlayerProvider";
-
+import { useAppSettings, useAudioPlayer } from "@/hooks/useContext";
 export function useAudioVolume() {
-  const { audioRef } = useAudioPlayerContext();
+  const { audioRef } = useAudioPlayer();
   const { volume: savedVolume, setVolume: saveVolume } = useAppSettings();
   const [volume, setVolumeState] = useState<number | null>(null);
   const [isMuted, setMuted] = useState(false);

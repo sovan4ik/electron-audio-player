@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Box, Grid, Typography, Divider, styled, Paper } from "@mui/material";
+import { Box, Grid, Typography, styled, Paper } from "@mui/material";
 import {
   RadarChart,
   Radar,
@@ -9,17 +8,21 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { TracksStatsMap, useTrackStats } from "@/hooks/useTrackStats";
 import { useTracks } from "@/hooks/useTracks";
-import { Track } from "@/types";
-import { useAudioPlayerContext } from "@/contexts/AudioPlayerProvider";
-import { useTrackStatsContext } from "@/contexts/TrackStatsProvider";
+import { useAudioPlayer, useTrackStats } from "@/hooks/useContext";
 
-const formatTime = (seconds: number) => {
+const formatListenTime = (seconds: number) => {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = Math.floor(seconds % 60);
-  return `${h}h ${m}m ${s}s`;
+
+  const parts = [];
+
+  if (h > 0) parts.push(`${h}h`);
+  if (m > 0 || h > 0) parts.push(`${String(m).padStart(2, "0")}m`);
+  parts.push(`${String(s).padStart(2, "0")}s`);
+
+  return parts.join(" ");
 };
 
 const Item = styled(Paper)(({ theme }) => ({
@@ -34,9 +37,15 @@ const Item = styled(Paper)(({ theme }) => ({
 }));
 
 export default function TrackStatsDashboard() {
-  const { audioRef } = useAudioPlayerContext();
+  const { currentTrack, visibleListenTime } = useAudioPlayer();
+  const { stats } = useTrackStats();
   const { tracks, isTracksReady } = useTracks();
-  const { stats } = useTrackStatsContext();
+  const currentListenTime = visibleListenTime;
+
+  const audio =
+    typeof window !== "undefined" ? document.querySelector("audio") : null;
+  const isPlaying = audio && !audio.paused && !audio.ended;
+
   const map = new Map(tracks.map((track) => [track.file, track]));
 
   const data = Object.entries(stats).map(([path, stat]) => {
@@ -52,24 +61,19 @@ export default function TrackStatsDashboard() {
       ...stat,
     };
   });
-  console.log("Dashboard stats:", stats);
 
   if (!isTracksReady) return <div>Loading tracks...</div>;
-
-  // Create a map for quick search of a track by file name
 
   const totalTracks = data.length;
   const totalPlays = data.reduce((acc, d) => acc + d.playCount, 0);
   const totalSkips = data.reduce((acc, d) => acc + d.skipCount, 0);
-  console.log("DATA =>", data);
 
-  const totalTime = data.reduce((acc, d) => acc + d.totalListenTime, 0);
+  const baseTotalTime = data.reduce((acc, d) => acc + d.totalListenTime, 0);
 
-  console.log(
-    "TOTAL TIME CHECK:",
-    totalTime,
-    data.map((d) => d.totalListenTime)
-  );
+  const currentTrackStat = currentTrack ? stats[currentTrack.file] : null;
+  const currentStatTime = currentTrackStat?.totalListenTime || 0;
+
+  const totalTime = baseTotalTime - currentStatTime + visibleListenTime;
 
   const genreStats = data.reduce((acc, d) => {
     if (!acc[d.genre]) {
@@ -94,6 +98,16 @@ export default function TrackStatsDashboard() {
     <Box sx={{ flexGrow: 1 }}>
       <Grid container spacing={2}>
         <Grid size={8}>
+          {currentTrack && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle2" sx={{ color: "#ff2cc3", mb: 1 }}>
+                Listening now:
+              </Typography>
+              <Typography variant="body1" sx={{ color: "#fff" }}>
+                {currentTrack.title} — {formatListenTime(currentListenTime)}
+              </Typography>
+            </Box>
+          )}
           <Item>
             <Box
               sx={{
@@ -117,8 +131,8 @@ export default function TrackStatsDashboard() {
                   value: totalSkips,
                 },
                 {
-                  label: "LISTEN TIME",
-                  value: formatTime(totalTime),
+                  label: "TOTAL LISTEN TIME",
+                  value: formatListenTime(totalTime),
                 },
               ].map((item, i) => (
                 <Box

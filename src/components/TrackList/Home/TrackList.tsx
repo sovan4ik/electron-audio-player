@@ -6,7 +6,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { Track } from "../../types";
+import { Track } from "../../../types";
 import { TrackRow } from "./TrackRow";
 import { Clock3 } from "lucide-react";
 
@@ -26,6 +26,8 @@ export function TrackList({
   tracks,
   liked,
   toggleLike,
+  // ignored,
+  // toggleIgnore,
   onPlay,
   onPause,
 
@@ -48,7 +50,7 @@ export function TrackList({
             <TableCell sx={{ color: "gray" }}>Title</TableCell>
             <TableCell sx={{ color: "gray" }}>Album</TableCell>
             <TableCell sx={{ color: "gray" }}>Genre</TableCell>
-            <TableCell sx={{ color: "gray" }}>Like</TableCell>
+            <TableCell sx={{ color: "gray" }}>Actions</TableCell>
             <TableCell size="small" sx={{ color: "gray" }}>
               <Clock3 size={18} />
             </TableCell>

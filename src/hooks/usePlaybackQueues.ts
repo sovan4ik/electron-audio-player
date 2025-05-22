@@ -1,57 +1,78 @@
-// usePlaybackQueues.ts
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTracks } from "./useTracks";
 import { useLikes } from "./useLikes";
-import { useAppSettings } from "./useAppSettings";
-import { usePlayMode } from "./usePlayMode";
-import { getRankedTrackList } from "@/utils/getRankedTrackList";
+import { useAppSettings } from "@/hooks/useContext";
+import { getSmartShuffledTracks } from "@/utils/getSmartShuffledTracks";
 import { Track, PlayMode } from "@/types";
 
 export function usePlaybackQueues() {
-  const { tracks } = useTracks();
+  const { tracks, isTracksReady } = useTracks();
   const { liked, genreStats } = useLikes();
-  const { lastPlayed } = useAppSettings();
-  const { mode } = usePlayMode();
-
-  const [queues, setQueues] = useState<Record<PlayMode, Track[]>>({
-    normal: [],
-    shuffle: [],
-    smartShuffle: [],
-  });
+  const { lastPlayed, playMode } = useAppSettings();
 
   const [currentQueue, setCurrentQueue] = useState<Track[]>([]);
+  const primaryQueueRef = useRef<Track[] | null>(null);
 
+  
   useEffect(() => {
-    const reorder = (arr: Track[]) => {
-      if (!lastPlayed) return arr;
-      const idx = arr.findIndex((t) => t.file === lastPlayed.file);
-      return idx === -1 ? arr : [arr[idx], ...arr.filter((_, i) => i !== idx)];
-    };
+    if (!isTracksReady || tracks.length === 0 || primaryQueueRef.current)
+      return;
 
-    const normal = reorder([...tracks]);
-    const shuffle = reorder([...tracks].sort(() => Math.random() - 0.5));
-    const smart = reorder(getRankedTrackList(genreStats, liked, tracks));
+    const lastPlayedTrack = tracks.find((t) => t.file === lastPlayed?.file);
+    const others = tracks.filter((t) => t.file !== lastPlayed?.file);
 
-    const newQueues = { normal, shuffle, smartShuffle: smart };
-    setQueues(newQueues);
-    setCurrentQueue(newQueues[mode]);
-  }, [tracks, liked, genreStats, lastPlayed]);
+    primaryQueueRef.current = [
+      ...(lastPlayedTrack ? [lastPlayedTrack] : []),
+      ...others,
+    ];
+  }, [tracks, isTracksReady, lastPlayed]);
 
+  
   useEffect(() => {
-    if (queues[mode]) {
-      setCurrentQueue(queues[mode]);
+    if (!isTracksReady || !primaryQueueRef.current) return;
+
+    let queue: Track[] = [];
+
+    switch (playMode) {
+      case PlayMode.Normal:
+        queue = [...primaryQueueRef.current];
+        break;
+
+      case PlayMode.Shuffle: {
+        const others = primaryQueueRef.current.slice(1);
+        queue = [
+          primaryQueueRef.current[0],
+          ...others.sort(() => Math.random() - 0.5),
+        ];
+        break;
+      }
+
+      case PlayMode.SmartShuffle: {
+        const others = primaryQueueRef.current.slice(1);
+        queue = [
+          primaryQueueRef.current[0],
+          ...getSmartShuffledTracks(others, liked, genreStats),
+        ];
+        break;
+      }
+
+      default:
+        queue = [...primaryQueueRef.current];
+        break;
     }
-  }, [mode, queues]);
+
+    setCurrentQueue(queue);
+  }, [playMode, isTracksReady, liked, genreStats]);
 
   const getNext = (current: Track | null): Track | null => {
     if (!current) return currentQueue[0] || null;
-    const index = currentQueue.findIndex((t) => t.file === current.file);
+    const index = currentQueue.findIndex((t) => t.file === current?.file);
     return currentQueue[index + 1] || null;
   };
 
   const getPrev = (current: Track | null): Track | null => {
     if (!current) return null;
-    const index = currentQueue.findIndex((t) => t.file === current.file);
+    const index = currentQueue.findIndex((t) => t.file === current?.file);
     return currentQueue[index - 1] || null;
   };
 
@@ -59,5 +80,6 @@ export function usePlaybackQueues() {
     currentQueue,
     getNext,
     getPrev,
+    primaryQueue: primaryQueueRef.current || [],
   };
 }

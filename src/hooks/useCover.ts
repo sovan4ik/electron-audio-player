@@ -4,12 +4,14 @@ import { Track } from "../types";
 const globalCoverCache = new Map<string, string>();
 
 export function useCover(track: Track | null): string {
-  const [cover, setCover] = useState("/assets/default-cover.jpg");
+  const [cover, setCover] = useState("/assets/images/no-cover.png");
 
   useEffect(() => {
     if (!track) return;
 
-    const path = track.file.startsWith("/") ? `public${track.file}` : track.file;
+    const path = track.file.startsWith("/")
+      ? `public${track.file}`
+      : track.file;
 
     if (globalCoverCache.has(path)) {
       setCover(globalCoverCache.get(path)!);

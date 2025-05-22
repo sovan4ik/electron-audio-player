@@ -1,7 +1,7 @@
-import { createContext, useContext } from "react";
+import { createContext } from "react";
 import { useTrackStats } from "@/hooks/useTrackStats";
 
-const TrackStatsContext = createContext<ReturnType<
+export const TrackStatsContext = createContext<ReturnType<
   typeof useTrackStats
 > | null>(null);
 
@@ -16,13 +16,4 @@ export const TrackStatsProvider = ({
       {children}
     </TrackStatsContext.Provider>
   );
-};
-
-export const useTrackStatsContext = () => {
-  const ctx = useContext(TrackStatsContext);
-  if (!ctx)
-    throw new Error(
-      "useTrackStatsContext must be used within TrackStatsProvider"
-    );
-  return ctx;
 };

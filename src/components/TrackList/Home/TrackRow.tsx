@@ -12,10 +12,12 @@ import Pause from "@mui/icons-material/Pause";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import { useState } from "react";
-import { Track } from "../../types";
-import { NowPlayingBars } from "../NowPlayingBars";
+import { Track } from "../../../types";
+import { NowPlayingBars } from "../../NowPlayingBars";
 import { useCover } from "@/hooks/useCover";
 import formatDuration from "@/utils/formatDuration";
+import { CircleMinus, Heart } from "lucide-react";
+import { GenreChip } from "../../GenreChip";
 
 interface TrackRowProps {
   track: Track;
@@ -39,7 +41,6 @@ export function TrackRow({
   toggleLike,
 }: TrackRowProps) {
   const [hovered, setHovered] = useState(false);
-  // const cover = useCover(track);
 
   const handlePlay = (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -130,21 +131,27 @@ export function TrackRow({
         {track.album}
       </TableCell>
       <TableCell align="left" sx={{ color: "white" }}>
-        {track.genres.join(", ")}
+        <Box display="flex" gap={0.5}>
+          {track.genres.map((genre) => (
+            <GenreChip key={genre} genre={genre} />
+          ))}
+        </Box>
       </TableCell>
       <TableCell align="left">
-        <IconButton
-          onClick={(e) => {
-            e.stopPropagation();
-            toggleLike(track);
-          }}
-        >
-          {liked ? (
-            <FavoriteIcon sx={{ color: "#a259ff" }} />
-          ) : (
-            <FavoriteBorderIcon sx={{ color: "white" }} />
-          )}
-        </IconButton>
+        <Tooltip title={liked ? "Unlike" : "Like"}>
+          <IconButton
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleLike(track);
+            }}
+          >
+            {liked ? (
+              <Heart size={20} fill="#a259ff" color="#a259ff" />
+            ) : (
+              <Heart size={20} color="white" />
+            )}
+          </IconButton>
+        </Tooltip>
       </TableCell>
       <TableCell align="left" sx={{ color: "white" }}>
         {formatDuration(track.duration)}

@@ -4,6 +4,7 @@ import { darkTheme } from "./theme/theme";
 import RootLayout from "./layouts/RootLayout";
 import HomePage from "./pages/HomePage";
 import LikedPage from "./pages/LikedPage";
+import IgnoredPage from "./pages/IgnoredPage";
 import StatisticsPage from "./pages/StatisticsPage";
 
 export default function App() {
@@ -14,6 +15,7 @@ export default function App() {
         <Route path="/" element={<RootLayout />}>
           <Route index element={<HomePage />} />
           <Route path="liked" element={<LikedPage />} />
+          <Route path="ignored" element={<IgnoredPage />} />
           <Route path="stats" element={<StatisticsPage />} />
         </Route>
       </Routes>

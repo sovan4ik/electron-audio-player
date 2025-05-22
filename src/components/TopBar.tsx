@@ -1,9 +1,7 @@
 import { Box, IconButton, Tooltip } from "@mui/material";
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import BarChartIcon from "@mui/icons-material/BarChart";
-import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
 import { Link } from "react-router-dom";
 import { PlaybackModeSelector } from "./PlaybackModeSelector";
+import { Heart, BarChart2, Music, CircleMinus } from "lucide-react";
 
 export function TopBar() {
   return (
@@ -17,29 +15,37 @@ export function TopBar() {
         borderBottom: "1px solid #333",
       }}
     >
-      <Box>
+      {/* Left block */}
+      <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-start" }}>
         <Tooltip title="Home">
           <IconButton component={Link} to="/" sx={{ color: "white" }}>
-            <LibraryMusicIcon />
+            <Music size={20} />
           </IconButton>
         </Tooltip>
       </Box>
 
-      <Box>
-        <Tooltip title="Home">
-          <PlaybackModeSelector />
-        </Tooltip>
+      {/* Center block */}
+      <Box sx={{ flex: 1, display: "flex", justifyContent: "center" }}>
+        <PlaybackModeSelector />
       </Box>
 
-      <Box sx={{ display: "flex", gap: 1 }}>
+      {/* Right block */}
+      <Box
+        sx={{ flex: 1, display: "flex", justifyContent: "flex-end", gap: 1 }}
+      >
+                <Tooltip title="Ignored Songs">
+          <IconButton component={Link} to="/ignored" sx={{ color: "white" }}>
+            <CircleMinus size={20} />
+          </IconButton>
+        </Tooltip>
         <Tooltip title="Liked Songs">
           <IconButton component={Link} to="/liked" sx={{ color: "white" }}>
-            <FavoriteIcon />
+            <Heart size={20} />
           </IconButton>
         </Tooltip>
         <Tooltip title="Statistics">
           <IconButton component={Link} to="/stats" sx={{ color: "white" }}>
-            <BarChartIcon />
+            <BarChart2 size={20} />
           </IconButton>
         </Tooltip>
       </Box>

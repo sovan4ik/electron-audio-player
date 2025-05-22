@@ -1,15 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Track } from "../types";
 import { usePlaybackQueues } from "./usePlaybackQueues";
-import { useTrackStats } from "./useTrackStats";
-import { useTrackStatsContext } from "@/contexts/TrackStatsProvider";
+import { useTrackStats } from "./useContext";
+import fadeAudio from "@/utils/fadeAudio";
 
 export function useAudioPlayer() {
   const { currentQueue } = usePlaybackQueues();
-  const { updateStats } = useTrackStatsContext();
+  const { stats, updateStats } = useTrackStats();
 
   const audioRef = useRef<HTMLAudioElement>(null);
-  const autoStart = false;
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [progress, setProgress] = useState(0);
@@ -17,58 +16,118 @@ export function useAudioPlayer() {
   const [targetVolume, setTargetVolume] = useState<number | null>(null);
 
   const listenStart = useRef<number | null>(null);
+  const listenBuffer = useRef<number>(0);
+  const refTotalTime = useRef<number>(0);
+  const currentIndexRef = useRef<number>(-1);
   const playedAlready = useRef<boolean>(false);
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || !currentTrack) return;
+  const [visibleListenTime, setVisibleListenTime] = useState(0);
+  const lastRawTime = useRef<number>(0); // protection to prevent playback time from jumping
 
+  useEffect(() => {
+    if (!currentTrack) return;
+    const s = stats[currentTrack.file];
+    if (s && typeof s.totalListenTime === "number") {
+      refTotalTime.current = s.totalListenTime;
+      lastRawTime.current = s.totalListenTime;
+      setVisibleListenTime(s.totalListenTime);
+    } else {
+      refTotalTime.current = 0;
+      lastRawTime.current = 0;
+      setVisibleListenTime(0);
+    }
+  }, [stats, currentTrack]);
+
+  // Tracking time in interval
+  useEffect(() => {
     const interval = setInterval(() => {
-      if (!audio.paused && !audio.ended) {
-        console.log("[STATS] +1s for", currentTrack.file);
-        updateStats(currentTrack.file, { totalListenTime: 1 });
+      const audio = audioRef.current;
+      if (!audio || !currentTrack || audio.paused || audio.ended) return;
+
+      const now = Date.now();
+      if (listenStart.current !== null) {
+        const delta = (now - listenStart.current) / 1000;
+        listenBuffer.current += delta;
+        listenStart.current = now;
+
+        const total = refTotalTime.current + listenBuffer.current;
+        const floored = Math.floor(total);
+
+        // twitch protection
+        if (floored !== lastRawTime.current) {
+          lastRawTime.current = floored;
+          setVisibleListenTime(floored);
+        }
+
+        const fullSeconds = Math.floor(listenBuffer.current);
+        if (fullSeconds >= 1) {
+          updateStats(currentTrack.file, {
+            totalListenTime: fullSeconds,
+          });
+          refTotalTime.current += fullSeconds;
+          listenBuffer.current -= fullSeconds;
+        }
       }
-    }, 1000);
+    }, 500);
 
     return () => clearInterval(interval);
-  }, [audioRef, currentTrack]);
+  }, [currentTrack]);
+
+  // Track index
+  useEffect(() => {
+    if (!currentTrack) return;
+    const index = currentQueue.findIndex((t) => t.file === currentTrack.file);
+    currentIndexRef.current = index;
+  }, [currentTrack, currentQueue]);
 
   const finalizeStats = () => {
-    const audio = audioRef.current;
-    if (!audio || !currentTrack) return;
+    const now = Date.now();
+    if (!currentTrack || listenStart.current === null) return;
 
-    const listened =
-      listenStart.current !== null
-        ? audio.currentTime - listenStart.current
-        : 0;
+    const delta = (now - listenStart.current) / 1000;
+    listenBuffer.current += delta;
 
-    if (listened > 0) {
+    const fullSeconds = Math.floor(listenBuffer.current);
+    if (fullSeconds >= 1) {
       updateStats(currentTrack.file, {
-        totalListenTime: Math.floor(listened),
+        totalListenTime: fullSeconds,
       });
+      refTotalTime.current += fullSeconds;
+      listenBuffer.current -= fullSeconds;
     }
 
     listenStart.current = null;
-    playedAlready.current = false;
+  };
+
+  const loadTrack = (track: Track, startTime = 0) => {
+    finalizeStats();
+    const audio = audioRef.current;
+    if (!audio || targetVolume === null) return;
+
+    setCurrentTrack(track);
+    audio.src = track.file;
+    audio.currentTime = startTime;
+    audio.volume = targetVolume;
+    setIsPlaying(false);
   };
 
   const playTrack = (track: Track, startTime = 0) => {
     finalizeStats();
-
     const audio = audioRef.current;
     if (!audio || targetVolume === null) return;
 
     setCurrentTrack(track);
     setIsPlaying(true);
-
     audio.src = track.file;
     audio.currentTime = startTime;
+    audio.volume = 0;
 
-    audio.onloadedmetadata = () => {
-      audio.volume = targetVolume;
+    audio
+      .play()
+      .then(() => {
+        fadeAudio(audio, 0, targetVolume, 200);
+        listenStart.current = Date.now();
 
-      audio.play().then(() => {
-        listenStart.current = audio.currentTime;
         if (!playedAlready.current) {
           updateStats(track.file, {
             playCount: 1,
@@ -76,8 +135,11 @@ export function useAudioPlayer() {
           });
           playedAlready.current = true;
         }
+      })
+      .catch((err) => {
+        console.warn("Playback failed:", err);
+        setIsPlaying(false);
       });
-    };
   };
 
   const togglePlayPause = () => {
@@ -86,35 +148,24 @@ export function useAudioPlayer() {
 
     if (audio.paused) {
       setIsPlaying(true);
-      audio.volume = targetVolume;
+      audio.volume = 0;
       audio.play().then(() => {
-        listenStart.current = audio.currentTime;
+        fadeAudio(audio, 0, targetVolume, 200); // fade in
+        listenStart.current = Date.now();
       });
     } else {
-      const ratio = audio.currentTime / (audio.duration || 1);
-      if (ratio < 0.1 && currentTrack) {
-        updateStats(currentTrack.file, { skipCount: 1 });
-      }
-
-      finalizeStats();
-      setIsPlaying(false);
-      audio.pause();
+      fadeAudio(audio, audio.volume, 0, 200); // fade out
+      setTimeout(() => {
+        finalizeStats();
+        audio.pause();
+        setIsPlaying(false);
+      }, 200);
     }
   };
-
   const playNext = () => {
-    const audio = audioRef.current;
-    if (currentTrack && audio) {
-      const ratio = audio.currentTime / (audio.duration || 1);
-      if (ratio < 0.1) {
-        updateStats(currentTrack.file, { skipCount: 1 });
-      }
-    }
-
     finalizeStats();
-
-    const index = currentQueue.findIndex((t) => t.file === currentTrack?.file);
-    const next = currentQueue[index + 1] || currentQueue[0];
+    const index = currentIndexRef.current;
+    const next = currentQueue[(index + 1) % currentQueue.length];
     playTrack(next);
   };
 
@@ -124,14 +175,14 @@ export function useAudioPlayer() {
 
     if (audio.currentTime > 3) {
       audio.currentTime = 0;
-      listenStart.current = 0;
+      listenStart.current = Date.now();
       return;
     }
 
     finalizeStats();
-    const index = currentQueue.findIndex((t) => t.file === currentTrack.file);
-    const prev =
-      currentQueue[index - 1] || currentQueue[currentQueue.length - 1];
+    const index =
+      (currentIndexRef.current - 1 + currentQueue.length) % currentQueue.length;
+    const prev = currentQueue[index];
     playTrack(prev);
   };
 
@@ -160,7 +211,14 @@ export function useAudioPlayer() {
     if (audio) audio.volume = value;
   };
 
-  // ✅ Save listen time before window closes
+  const handleSeek = (p: number) => {
+    const audio = audioRef.current;
+    if (audio && duration) {
+      audio.currentTime = duration * p;
+    }
+  };
+
+  // when exiting the application
   useEffect(() => {
     const onUnload = () => finalizeStats();
     window.addEventListener("beforeunload", onUnload);
@@ -174,20 +232,16 @@ export function useAudioPlayer() {
     progress,
     duration,
     playTrack,
-    loadTrack: playTrack,
+    loadTrack,
     togglePlayPause,
     playNext,
     playPrev,
-    handleSeek: (p: number) => {
-      const audio = audioRef.current;
-      if (audio && duration) {
-        audio.currentTime = duration * p;
-      }
-    },
+    handleSeek,
     handleTimeUpdate,
     handleLoadedMetadata,
     handleEnded,
     targetVolume,
     setTargetVolume: updateVolume,
+    visibleListenTime,
   };
 }

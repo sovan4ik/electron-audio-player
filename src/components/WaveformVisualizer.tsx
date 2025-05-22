@@ -1,4 +1,4 @@
-import { useAudioPlayerContext } from "@/contexts/AudioPlayerProvider";
+import { useAudioPlayer } from "@/hooks/useContext";
 import { useEffect, useRef, useState } from "react";
 
 interface Props {
@@ -7,7 +7,7 @@ interface Props {
 }
 
 export function WaveformVisualizer({ audioRef, height = 150 }: Props) {
-  const player = useAudioPlayerContext();
+  const player = useAudioPlayer();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);

@@ -1,7 +1,8 @@
 import { IconButton, Tooltip, Fade } from "@mui/material";
 import { Repeat, Shuffle, Sparkles } from "lucide-react";
-import { usePlayMode } from "@/hooks/usePlayMode";
+
 import { PlayMode } from "@/types";
+import { useAppSettings } from "@/hooks/useContext";
 
 const icons = {
   normal: <Repeat />,
@@ -22,15 +23,15 @@ const nextMode: Record<PlayMode, PlayMode> = {
 };
 
 export function PlaybackModeSelector() {
-  const { mode, setMode } = usePlayMode();
+  const { playMode, setPlayMode } = useAppSettings();
 
   const handleClick = () => {
-    const next = nextMode[mode];
-    setMode(next);
+    const next = nextMode[playMode];
+    setPlayMode(next);
   };
 
   return (
-    <Tooltip title={labels[mode]} arrow TransitionComponent={Fade}>
+    <Tooltip title={labels[playMode]} arrow TransitionComponent={Fade}>
       <IconButton
         onClick={handleClick}
         sx={{
@@ -41,7 +42,7 @@ export function PlaybackModeSelector() {
           },
         }}
       >
-        {icons[mode]}
+        {icons[playMode]}
       </IconButton>
     </Tooltip>
   );

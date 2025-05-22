@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useTracks } from "@/hooks/useTracks";
-import { useAudioPlayerContext } from "@/contexts/AudioPlayerProvider";
+import { useAudioPlayer } from "@/hooks/useContext";
 import { Track } from "../types";
-import { TrackList } from "../components/tracks/TrackList";
+import { TrackList } from "../components/TrackList/Home/TrackList";
 
 export default function LikedPage() {
-  const player = useAudioPlayerContext();
+  const player = useAudioPlayer();
   const { tracks } = useTracks();
   const [liked, setLiked] = useState<Set<string>>(new Set());
 

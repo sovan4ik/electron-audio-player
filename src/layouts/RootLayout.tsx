@@ -2,16 +2,15 @@ import { Outlet } from "react-router-dom";
 import { Box } from "@mui/material";
 import { TopBar } from "../components/TopBar";
 import { PlayerBar } from "../components/player/PlayerBar";
-import { useAudioPlayerContext } from "@/contexts/AudioPlayerProvider";
 import { useCover } from "@/hooks/useCover";
-import { useAppSettings } from "@/hooks/useAppSettings";
 import { useEffect, useRef } from "react";
 import { useTracks } from "@/hooks/useTracks";
 import { WaveformVisualizer } from "@/components/WaveformVisualizer";
 
+import { useAppSettings, useAudioPlayer } from "@/hooks/useContext";
+
 export default function RootLayout() {
-  const player = useAudioPlayerContext();
-  const { tracks, isTracksReady } = useTracks();
+  const player = useAudioPlayer();
   const {
     volume,
     setVolume,
@@ -19,6 +18,7 @@ export default function RootLayout() {
     saveLastPlayed,
     isReady: isSettingsReady,
   } = useAppSettings();
+  const { tracks, isTracksReady } = useTracks();
 
   const cover = useCover(player.currentTrack);
   const initialized = useRef(false);
@@ -44,7 +44,7 @@ export default function RootLayout() {
     }
   }, [isSettingsReady, isTracksReady, lastPlayed, tracks]);
 
-  // Save track position every 1.5 seconds
+  // Save track position every 0.5 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       const audio = player.audioRef.current;
@@ -54,12 +54,12 @@ export default function RootLayout() {
           position: audio.currentTime,
         });
       }
-    }, 1000);
+    }, 500);
     return () => clearInterval(interval);
   }, [player.currentTrack]);
 
   return (
-    <Box display="flex" flexDirection="column" height="100vh">
+    <Box display="flex" flexDirection="column" height={"calc(100vh - 105px)"}>
       <TopBar />
       <WaveformVisualizer audioRef={player.audioRef} />
       <Box flex={1} overflow="auto">
