@@ -4,7 +4,7 @@ import { Track } from "../types";
 const globalCoverCache = new Map<string, string>();
 
 export function useCover(track: Track | null): string {
-  const [cover, setCover] = useState("/assets/images/no-cover.png");
+  const [cover, setCover] = useState(process.env.APP_NO_COVER_IMAGE_PATH!);
 
   useEffect(() => {
     if (!track) return;

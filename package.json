@@ -24,6 +24,8 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.1.0",
     "@mui/material": "^7.1.0",
+    "@supabase/supabase-js": "^2.49.8",
+    "dotenv": "^16.5.0",
     "electron-updater": "^6.3.9",
     "lucide-react": "^0.510.0",
     "music-metadata": "^11.2.1",

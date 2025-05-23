@@ -105,6 +105,7 @@ export function useAudioPlayer() {
     if (!audio || targetVolume === null) return;
 
     setCurrentTrack(track);
+    audio.crossOrigin = "anonymous";
     audio.src = track.file;
     audio.currentTime = startTime;
     audio.volume = targetVolume;

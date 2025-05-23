@@ -15,7 +15,7 @@ export default function HomePage() {
         tracks={primaryQueue}
         liked={liked}
         toggleLike={toggleLike}
-        onPlay={() => console.log()}
+        onPlay={player.playTrack}
         onPause={player.togglePlayPause}
         currentTrackFile={player.currentTrack?.file}
         isPlaying={player.isPlaying}

@@ -74,6 +74,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // Auto-scanning and returns tracks
   loadTracksWithMetadata: (): Promise<Track[]> =>
     ipcRenderer.invoke("load-tracks-with-metadata"),
+
+  loadRemoteTracksWithMetadata: (): Promise<Track[]> =>
+    ipcRenderer.invoke("load-remote-tracks-with-metadata"),
 });
 
 // --------- Preload scripts loading ---------

@@ -41,6 +41,7 @@ declare global {
 
       // Auto-scanning and returns tracks
       loadTracksWithMetadata: () => Promise<Track[]>;
+      loadRemoteTracksWithMetadata: () => Promise<Track[]>;
     };
   }
 }

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+
 import { Track } from "@/types";
 
 type TrackMaps = {
@@ -12,19 +13,20 @@ export function useTracks() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const loadTracks = async () => {
+    (async () => {
       try {
-        const parsedTracks: Track[] =
-          await window.electronAPI.loadTracksWithMetadata();
+        const [local = [], remote = []] = await Promise.all([
+          window.electronAPI?.loadTracksWithMetadata?.(),
+          window.electronAPI?.loadRemoteTracksWithMetadata?.(),
+        ]);
 
-        setTracks(parsedTracks);
-        setReady(true);
+        setTracks([...local, ...remote]);
       } catch (err) {
-        console.error("Failed to load tracks with metadata:", err);
+        console.error("Failed to load tracks:", err);
+      } finally {
+        setReady(true);
       }
-    };
-
-    loadTracks();
+    })();
   }, []);
 
   const maps: TrackMaps = useMemo(() => {

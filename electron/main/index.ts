@@ -168,3 +168,7 @@ ipcMain.handle("get-available-tracks", (_e, tracks) =>
 ipcMain.handle("load-tracks-with-metadata", () =>
   metaStore.loadTracksWithMetadata()
 );
+
+ipcMain.handle("load-remote-tracks-with-metadata", () =>
+  metaStore.loadRemoteTracksWithMetadata()
+);

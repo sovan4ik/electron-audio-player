@@ -33,21 +33,13 @@ export default function LikedPage() {
     window.electronAPI.saveLikes(Array.from(newLiked));
   };
 
-  const playTrack = (track: Track) => {
-    player.playTrack(track);
-  };
-
-  const pauseTrack = () => {
-    player.togglePlayPause();
-  };
-
   return (
     <TrackList
       tracks={likedTracks}
       liked={liked}
       toggleLike={toggleLike}
-      onPlay={playTrack}
-      onPause={pauseTrack}
+      onPlay={player.playTrack}
+      onPause={player.togglePlayPause}
       currentTrackFile={player.currentTrack?.file}
       isPlaying={player.isPlaying}
     />

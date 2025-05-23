@@ -2,7 +2,7 @@ import { Outlet } from "react-router-dom";
 import { Box } from "@mui/material";
 import { TopBar } from "../components/TopBar";
 import { PlayerBar } from "../components/player/PlayerBar";
-import { useCover } from "@/hooks/useCover";
+
 import { useEffect, useRef } from "react";
 import { useTracks } from "@/hooks/useTracks";
 import { WaveformVisualizer } from "@/components/WaveformVisualizer";
@@ -20,7 +20,6 @@ export default function RootLayout() {
   } = useAppSettings();
   const { tracks, isTracksReady } = useTracks();
 
-  const cover = useCover(player.currentTrack);
   const initialized = useRef(false);
 
   // Set the volume in the player after loading
@@ -70,7 +69,7 @@ export default function RootLayout() {
         <PlayerBar
           audioRef={player.audioRef}
           isPlaying={player.isPlaying}
-          cover={cover}
+          cover={player.currentTrack.cover}
           togglePlayPause={player.togglePlayPause}
           progress={player.progress}
           duration={player.duration}
@@ -85,6 +84,8 @@ export default function RootLayout() {
       )}
 
       <audio
+        // for supabase storage(api)
+        crossOrigin="anonymous"
         ref={player.audioRef}
         onEnded={() => player.playNext()}
         onTimeUpdate={player.handleTimeUpdate}
