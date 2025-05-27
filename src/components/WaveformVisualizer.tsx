@@ -84,7 +84,7 @@ export function WaveformVisualizer({ height = 150 }: Props) {
         }}
       />
       <AnimatePresence>
-        {player.targetVolume === 1 && (
+        {player.isPlaying && player.targetVolume === 1 && (
           <motion.img
             key="koala-overlay"
             src="/assets/images/koala.png"
