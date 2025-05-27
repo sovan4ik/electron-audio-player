@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAudioPlayer } from "@/hooks/useContext";
 import { useAudioAnalyser } from "@/hooks/useContext";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface Props {
   height?: number;
@@ -82,23 +83,30 @@ export function WaveformVisualizer({ height = 150 }: Props) {
           backgroundColor: "transparent",
         }}
       />
-      {player.targetVolume === 1 && (
-        <img
-          src="/public/assets/images/koala.png"
-          alt="Overlay"
-          style={{
-            width: "75%",
-            height: "75%",
-            objectFit: "contain",
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            pointerEvents: "none",
-            maxWidth: "20%",
-          }}
-        />
-      )}
+      <AnimatePresence>
+        {player.targetVolume === 1 && (
+          <motion.img
+            key="koala-overlay"
+            src="/assets/images/koala.png"
+            alt="Overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            style={{
+              width: "75%",
+              height: "75%",
+              objectFit: "contain",
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              pointerEvents: "none",
+              maxWidth: "20%",
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,18 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import { useTracks } from "./useTracks";
-
 import { useAppSettings, useTrackFlags } from "@/hooks/useContext";
 import { getSmartShuffledTracks } from "@/utils/getSmartShuffledTracks";
 import { Track, PlayMode } from "@/types";
 
 export function usePlaybackQueues() {
   const { tracks, isTracksReady } = useTracks();
-  const { liked, genreStats } = useTrackFlags();
+  const { liked, ignored, genreStats } = useTrackFlags();
   const { lastPlayed, playMode } = useAppSettings();
 
   const [currentQueue, setCurrentQueue] = useState<Track[]>([]);
   const primaryQueueRef = useRef<Track[] | null>(null);
 
+  // forming primary queue once
   useEffect(() => {
     if (!isTracksReady || tracks.length === 0 || primaryQueueRef.current)
       return;
@@ -26,51 +26,68 @@ export function usePlaybackQueues() {
     ];
   }, [tracks, isTracksReady, lastPlayed]);
 
+  // refreshing the queue when changing playMode / likes / genres
   useEffect(() => {
     if (!isTracksReady || !primaryQueueRef.current) return;
 
     let queue: Track[] = [];
 
+    const baseQueue = primaryQueueRef.current.filter(
+      (track) => !ignored.has(track.file)
+    );
+
     switch (playMode) {
       case PlayMode.Normal:
-        queue = [...primaryQueueRef.current];
+        queue = [...baseQueue];
         break;
 
       case PlayMode.Shuffle: {
-        const others = primaryQueueRef.current.slice(1);
-        queue = [
-          primaryQueueRef.current[0],
-          ...others.sort(() => Math.random() - 0.5),
-        ];
+        const [first, ...rest] = baseQueue;
+        queue = first ? [first, ...rest.sort(() => Math.random() - 0.5)] : [];
         break;
       }
 
       case PlayMode.SmartShuffle: {
-        const others = primaryQueueRef.current.slice(1);
-        queue = [
-          primaryQueueRef.current[0],
-          ...getSmartShuffledTracks(others, liked, genreStats),
-        ];
+        const [first, ...rest] = baseQueue;
+        queue = first
+          ? [first, ...getSmartShuffledTracks(rest, liked, genreStats)]
+          : [];
         break;
       }
 
       default:
-        queue = [...primaryQueueRef.current];
+        queue = [...baseQueue];
         break;
     }
 
     setCurrentQueue(queue);
-  }, [playMode, isTracksReady, liked, genreStats]);
+  }, [playMode, isTracksReady, liked, genreStats, ignored]);
+
+  // add a random non-ignored track if the ignore has been updated
+  useEffect(() => {
+    if (!isTracksReady || !primaryQueueRef.current) return;
+
+    // filter already used tracks
+    const currentFiles = new Set(currentQueue.map((t) => t.file));
+    const candidates = tracks.filter(
+      (t) => !ignored.has(t.file) && !currentFiles.has(t.file)
+    );
+
+    if (candidates.length > 0) {
+      const random = candidates[Math.floor(Math.random() * candidates.length)];
+      setCurrentQueue((prev) => [...prev, random]);
+    }
+  }, [ignored]); // reacts to change ignored
 
   const getNext = (current: Track | null): Track | null => {
     if (!current) return currentQueue[0] || null;
-    const index = currentQueue.findIndex((t) => t.file === current?.file);
+    const index = currentQueue.findIndex((t) => t.file === current.file);
     return currentQueue[index + 1] || null;
   };
 
   const getPrev = (current: Track | null): Track | null => {
     if (!current) return null;
-    const index = currentQueue.findIndex((t) => t.file === current?.file);
+    const index = currentQueue.findIndex((t) => t.file === current.file);
     return currentQueue[index - 1] || null;
   };
 
