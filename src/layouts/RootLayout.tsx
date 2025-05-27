@@ -89,10 +89,9 @@ export default function RootLayout() {
         <TopBar />
         <WaveformVisualizer />
 
-        <Box flex={1} overflow="auto">
+        <Box flex={1} overflow="auto" sx={{ paddingBottom: "105px" }}>
           <Outlet />
         </Box>
-
         {player.currentTrack && (
           <PlayerBar
             audioRef={player.audioRef}

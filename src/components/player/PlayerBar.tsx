@@ -154,8 +154,8 @@ export function PlayerBar({
           >
             <Heart
               size={16}
-              color={liked ? "#1DB954" : "white"}
-              fill={liked ? "#1DB954" : "none"}
+              color={liked ? "#a259ff" : "white"}
+              fill={liked ? "#a259ff" : "none"}
             />
           </IconButton>
         </Box>
