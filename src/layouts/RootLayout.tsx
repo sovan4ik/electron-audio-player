@@ -8,6 +8,7 @@ import { useTracks } from "@/hooks/useTracks";
 import { WaveformVisualizer } from "@/components/WaveformVisualizer";
 
 import { useAppSettings, useAudioPlayer } from "@/hooks/useContext";
+import { DynamicVisualizer } from "@/components/DynamicVisualizer";
 
 export default function RootLayout() {
   const player = useAudioPlayer();
@@ -58,39 +59,61 @@ export default function RootLayout() {
   }, [player.currentTrack]);
 
   return (
-    <Box display="flex" flexDirection="column" height={"calc(100vh - 105px)"}>
-      <TopBar />
-      <WaveformVisualizer audioRef={player.audioRef} />
-      <Box flex={1} overflow="auto">
-        <Outlet />
+    <Box position="relative" height="100vh" overflow="hidden">
+      <Box
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          zIndex: 0,
+          pointerEvents: "none",
+        }}
+      >
+        <DynamicVisualizer />
       </Box>
 
-      {player.currentTrack && (
-        <PlayerBar
-          audioRef={player.audioRef}
-          isPlaying={player.isPlaying}
-          cover={player.currentTrack.cover}
-          togglePlayPause={player.togglePlayPause}
-          progress={player.progress}
-          duration={player.duration}
-          onSeek={player.handleSeek}
-          title={player.currentTrack?.title}
-          artists={player.currentTrack?.artists}
-          onNext={() => player.playNext()}
-          onPrev={() => player.playPrev()}
-          volume={volume}
-          setVolume={setVolume}
-        />
-      )}
+      <Box
+        display="flex"
+        flexDirection="column"
+        height="100%"
+        position="relative"
+        zIndex={1}
+      >
+        <TopBar />
+        <WaveformVisualizer />
 
-      <audio
-        // for supabase storage(api)
-        crossOrigin="anonymous"
-        ref={player.audioRef}
-        onEnded={() => player.playNext()}
-        onTimeUpdate={player.handleTimeUpdate}
-        onLoadedMetadata={player.handleLoadedMetadata}
-      />
+        <Box flex={1} overflow="auto">
+          <Outlet />
+        </Box>
+
+        {player.currentTrack && (
+          <PlayerBar
+            audioRef={player.audioRef}
+            isPlaying={player.isPlaying}
+            cover={player.currentTrack.cover}
+            togglePlayPause={player.togglePlayPause}
+            progress={player.progress}
+            duration={player.duration}
+            onSeek={player.handleSeek}
+            title={player.currentTrack?.title}
+            artists={player.currentTrack?.artists}
+            onNext={() => player.playNext()}
+            onPrev={() => player.playPrev()}
+            volume={volume}
+            setVolume={setVolume}
+          />
+        )}
+
+        <audio
+          crossOrigin="anonymous"
+          ref={player.audioRef}
+          onEnded={() => player.playNext()}
+          onTimeUpdate={player.handleTimeUpdate}
+          onLoadedMetadata={player.handleLoadedMetadata}
+        />
+      </Box>
     </Box>
   );
 }

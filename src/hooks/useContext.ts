@@ -1,7 +1,9 @@
 import { useContext } from "react";
-import { AppSettingsContext } from "@/contexts/AppSettingsContext";
+import { AppSettingsContext } from "@/contexts/AppSettingsProvider";
 import { AudioPlayerContext } from "@/contexts/AudioPlayerProvider";
 import { TrackStatsContext } from "@/contexts/TrackStatsProvider";
+import { AudioAnalyserContext } from "@/contexts/AudioAnalyserProvider";
+import { SearchContext } from "@/contexts/SearchContext";
 
 export const useAppSettings = () => {
   const ctx = useContext(AppSettingsContext);
@@ -23,3 +25,19 @@ export const useTrackStats = () => {
     throw new Error("useTrackStats must be used within <TrackStatsProvider>");
   return ctx;
 };
+
+export const useAudioAnalyser = () => {
+  const ctx = useContext(AudioAnalyserContext);
+  if (!ctx)
+    throw new Error(
+      "useAudioAnalyserContext must be used within <AudioAnalyserProvider>"
+    );
+  return ctx;
+};
+
+export function useSearch() {
+  const ctx = useContext(SearchContext);
+  if (!ctx)
+    throw new Error("useSearchContext must be used within SearchProvider");
+  return ctx;
+}

@@ -1,17 +1,15 @@
-import { useAudioPlayer } from "@/hooks/useContext";
 import { useEffect, useRef, useState } from "react";
+import { useAudioPlayer } from "@/hooks/useContext";
+import { useAudioAnalyser } from "@/hooks/useContext";
 
 interface Props {
-  audioRef: React.RefObject<HTMLAudioElement>;
   height?: number;
 }
 
-export function WaveformVisualizer({ audioRef, height = 150 }: Props) {
+export function WaveformVisualizer({ height = 150 }: Props) {
   const player = useAudioPlayer();
-
+  const { frequencyData } = useAudioAnalyser();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
   const [canvasWidth, setCanvasWidth] = useState(0);
 
   useEffect(() => {
@@ -29,8 +27,7 @@ export function WaveformVisualizer({ audioRef, height = 150 }: Props) {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const audio = audioRef.current;
-    if (!canvas || !audio || canvasWidth === 0) return;
+    if (!canvas || canvasWidth === 0 || frequencyData.length === 0) return;
 
     canvas.width = canvasWidth;
     canvas.height = height;
@@ -38,26 +35,10 @@ export function WaveformVisualizer({ audioRef, height = 150 }: Props) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    if (!audioCtxRef.current) {
-      const audioCtx = new AudioContext();
-      const analyser = audioCtx.createAnalyser();
-      const source = audioCtx.createMediaElementSource(audio);
-      source.connect(analyser);
-      analyser.connect(audioCtx.destination);
-      analyser.fftSize = 128;
-
-      audioCtxRef.current = audioCtx;
-      analyserRef.current = analyser;
-    }
-
-    const analyser = analyserRef.current!;
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
     let animationId: number;
 
     const draw = () => {
       animationId = requestAnimationFrame(draw);
-      analyser.getByteFrequencyData(dataArray);
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -74,8 +55,8 @@ export function WaveformVisualizer({ audioRef, height = 150 }: Props) {
       ctx.fillStyle = gradient;
 
       for (let i = 0; i < totalBars / 2; i++) {
-        const index = Math.floor((i / (totalBars / 2)) * bufferLength);
-        const value = dataArray[index] / 255;
+        const index = Math.floor((i / (totalBars / 2)) * frequencyData.length);
+        const value = frequencyData[index] / 255;
         const barHeight = value * centerY;
 
         const xL = centerX - (i + 1) * (barWidth + gap);
@@ -88,7 +69,7 @@ export function WaveformVisualizer({ audioRef, height = 150 }: Props) {
 
     draw();
     return () => cancelAnimationFrame(animationId);
-  }, [audioRef, canvasWidth, height]);
+  }, [frequencyData, canvasWidth, height]);
 
   return (
     <div style={{ position: "relative", width: "100%", height: `${height}px` }}>
@@ -101,7 +82,7 @@ export function WaveformVisualizer({ audioRef, height = 150 }: Props) {
           backgroundColor: "transparent",
         }}
       />
-      {player.targetVolume === 1 ? (
+      {player.targetVolume === 1 && (
         <img
           src="/public/assets/images/koala.png"
           alt="Overlay"
@@ -109,7 +90,6 @@ export function WaveformVisualizer({ audioRef, height = 150 }: Props) {
             width: "75%",
             height: "75%",
             objectFit: "contain",
-
             position: "absolute",
             top: "50%",
             left: "50%",
@@ -118,7 +98,7 @@ export function WaveformVisualizer({ audioRef, height = 150 }: Props) {
             maxWidth: "20%",
           }}
         />
-      ) : null}
+      )}
     </div>
   );
 }

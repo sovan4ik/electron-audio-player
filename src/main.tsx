@@ -6,16 +6,22 @@ import { AudioPlayerProvider } from "./contexts/AudioPlayerProvider";
 
 import "./index.css";
 import { TrackStatsProvider } from "./contexts/TrackStatsProvider";
-import { AppSettingsProvider } from "./contexts/AppSettingsContext";
+import { AppSettingsProvider } from "./contexts/AppSettingsProvider";
+import { AudioAnalyserWrapper } from "./components/AudioAnalyserWrapper";
+import { SearchProvider } from "./contexts/SearchContext";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <AppSettingsProvider>
       <TrackStatsProvider>
         <AudioPlayerProvider>
-          <HashRouter>
-            <App />
-          </HashRouter>
+          <SearchProvider>
+            <AudioAnalyserWrapper>
+              <HashRouter>
+                <App />
+              </HashRouter>
+            </AudioAnalyserWrapper>
+          </SearchProvider>
         </AudioPlayerProvider>
       </TrackStatsProvider>
     </AppSettingsProvider>

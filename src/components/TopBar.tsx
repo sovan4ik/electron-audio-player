@@ -2,8 +2,11 @@ import { Box, IconButton, Tooltip } from "@mui/material";
 import { Link } from "react-router-dom";
 import { PlaybackModeSelector } from "./PlaybackModeSelector";
 import { Heart, BarChart2, Music, CircleMinus } from "lucide-react";
+import SearchBar from "./SearchBar";
+import { useSearch } from "@/hooks/useContext";
 
 export function TopBar() {
+  const { setSearchQuery } = useSearch();
   return (
     <Box
       sx={{
@@ -22,18 +25,19 @@ export function TopBar() {
             <Music size={20} />
           </IconButton>
         </Tooltip>
+        <PlaybackModeSelector />
       </Box>
 
       {/* Center block */}
       <Box sx={{ flex: 1, display: "flex", justifyContent: "center" }}>
-        <PlaybackModeSelector />
+        <SearchBar onSearch={setSearchQuery} />
       </Box>
 
       {/* Right block */}
       <Box
         sx={{ flex: 1, display: "flex", justifyContent: "flex-end", gap: 1 }}
       >
-                <Tooltip title="Ignored Songs">
+        <Tooltip title="Ignored Songs">
           <IconButton component={Link} to="/ignored" sx={{ color: "white" }}>
             <CircleMinus size={20} />
           </IconButton>

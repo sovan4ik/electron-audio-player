@@ -9,6 +9,8 @@ export function useAudioPlayer() {
   const { stats, updateStats } = useTrackStats();
 
   const audioRef = useRef<HTMLAudioElement>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [progress, setProgress] = useState(0);
@@ -23,6 +25,28 @@ export function useAudioPlayer() {
 
   const [visibleListenTime, setVisibleListenTime] = useState(0);
   const lastRawTime = useRef<number>(0); // protection to prevent playback time from jumping
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || analyserRef.current) return;
+
+    const ctx = new AudioContext();
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 128;
+
+    const source = ctx.createMediaElementSource(audio);
+    source.connect(analyser);
+    analyser.connect(ctx.destination);
+
+    audioCtxRef.current = ctx;
+    analyserRef.current = analyser;
+
+    const unlock = () => {
+      if (ctx.state !== "running") ctx.resume();
+      window.removeEventListener("click", unlock);
+    };
+    window.addEventListener("click", unlock);
+  }, []);
 
   useEffect(() => {
     if (!currentTrack) return;
@@ -228,6 +252,7 @@ export function useAudioPlayer() {
 
   return {
     audioRef,
+    analyserRef,
     isPlaying,
     currentTrack,
     progress,
