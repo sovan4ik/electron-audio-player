@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import { useTracks } from "@/hooks/useTracks";
 import { useAudioPlayer, useTrackStats } from "@/hooks/useContext";
+import { useEffect, useMemo } from "react";
 
 const formatListenTime = (seconds: number) => {
   const h = Math.floor(seconds / 3600);
@@ -38,8 +39,17 @@ const Item = styled(Paper)(({ theme }) => ({
 
 export default function TrackStatsDashboard() {
   const { currentTrack, visibleListenTime } = useAudioPlayer();
-  const { stats } = useTrackStats();
+  const { stats, updateStats } = useTrackStats();
   const { tracks, isTracksReady } = useTracks();
+
+  useEffect(() => {
+    if (currentTrack) {
+      updateStats(currentTrack.file, {
+        lastPlayed: Date.now(),
+      });
+    }
+  }, [currentTrack]);
+
   const currentListenTime = visibleListenTime;
 
   const audio =
@@ -61,6 +71,15 @@ export default function TrackStatsDashboard() {
       ...stat,
     };
   });
+  const latestTracks = useMemo(() => {
+    return data
+      .filter((t) => !!t.lastPlayed)
+      .sort(
+        (a, b) =>
+          new Date(b.lastPlayed).getTime() - new Date(a.lastPlayed).getTime()
+      )
+      .slice(0, 5);
+  }, [data]);
 
   if (!isTracksReady) return <div>Loading tracks...</div>;
 
@@ -86,28 +105,18 @@ export default function TrackStatsDashboard() {
 
   const radarData = Object.values(genreStats);
 
-  const latestTracks = data
-    .filter((t) => !!t.lastPlayed)
-    .sort(
-      (a, b) =>
-        new Date(b.lastPlayed).getTime() - new Date(a.lastPlayed).getTime()
-    )
-    .slice(0, 5);
+  // const latestTracks = data
+  //   .filter((t) => !!t.lastPlayed)
+  //   .sort(
+  //     (a, b) =>
+  //       new Date(b.lastPlayed).getTime() - new Date(a.lastPlayed).getTime()
+  //   )
+  //   .slice(0, 5);
 
   return (
     <Box sx={{ flexGrow: 1 }}>
       <Grid container spacing={2}>
         <Grid size={8}>
-          {currentTrack && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle2" sx={{ color: "#ff2cc3", mb: 1 }}>
-                Listening now:
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#fff" }}>
-                {currentTrack.title} — {formatListenTime(currentListenTime)}
-              </Typography>
-            </Box>
-          )}
           <Item>
             <Box
               sx={{
@@ -159,27 +168,59 @@ export default function TrackStatsDashboard() {
                 </Box>
               ))}
             </Box>
+            <Box sx={{ mt: 4 }}>
+              <Typography variant="subtitle2" sx={{ color: "#ff2cc3", mb: 2 }}>
+                Recently Played:
+              </Typography>
 
-            <Box>
-              {latestTracks.map((track, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    py: 1,
-                    borderBottom:
-                      index < latestTracks.length - 1
-                        ? "1px solid #333"
-                        : "none",
-                  }}
-                >
-                  <Typography variant="body1" sx={{ color: "#fff" }}>
-                    {track.name}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: "#999" }}>
-                    Last played: {new Date(track.lastPlayed).toISOString()}
-                  </Typography>
-                </Box>
-              ))}
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2,
+                }}
+              >
+                {latestTracks.map((track, index) => {
+                  const isCurrentPlaying =
+                    isPlaying && track.key === currentTrack?.file;
+
+                  return (
+                    <Box
+                      key={index}
+                      sx={{
+                        p: 2,
+                        borderRadius: 2,
+                        background:
+                          "linear-gradient(to right, #1a1a2e, #0f0c29)",
+                        boxShadow: isCurrentPlaying
+                          ? "0 0 10px rgba(0, 255, 100, 0.2)"
+                          : "0 0 10px rgba(255, 44, 195, 0.2)",
+                        borderLeft: `4px solid ${
+                          isCurrentPlaying ? "#00ff64" : "#ff2cc3"
+                        }`,
+                      }}
+                    >
+                      <Typography
+                        variant="body1"
+                        sx={{ color: "#fff", fontWeight: 500 }}
+                      >
+                        {track.name}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: "#aaa" }}>
+                        Last played:{" "}
+                        {new Date(track.lastPlayed).toLocaleString()}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "#888", display: "block" }}
+                      >
+                        Total listen time:{" "}
+                        {formatListenTime(track.totalListenTime)}
+                      </Typography>
+                    </Box>
+                  );
+                })}
+              </Box>
             </Box>
           </Item>
         </Grid>
@@ -189,12 +230,13 @@ export default function TrackStatsDashboard() {
               sx={{
                 display: "flex",
                 justifyContent: "center",
-                width: 500,
+                alignItems: "center",
+                width: "100%",
                 height: 500,
               }}
             >
               <ResponsiveContainer width="100%" height="100%">
-                <RadarChart data={radarData}>
+                <RadarChart data={radarData} cx="50%" cy="50%">
                   <PolarGrid stroke="#4c4cff" />
                   <PolarAngleAxis dataKey="genre" stroke="#fff" />
                   <PolarRadiusAxis stroke="#888" />

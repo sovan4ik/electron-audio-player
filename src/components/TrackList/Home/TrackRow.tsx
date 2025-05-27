@@ -68,29 +68,40 @@ export function TrackRow({
       }}
     >
       <TableCell align="center" size="small" sx={{ width: 50, border: 0 }}>
-        {hovered && current && isPlaying ? (
-          <Tooltip title={`Pause ${track.title}`}>
-            <Pause
-              onClick={handlePlay}
-              sx={{ color: "white", cursor: "pointer" }}
-              fontSize="small"
-            />
-          </Tooltip>
-        ) : hovered && (!current || !isPlaying) ? (
-          <Tooltip title={`Play ${track.title}`}>
-            <PlayArrow
-              onClick={handlePlay}
-              sx={{ color: "white", cursor: "pointer" }}
-              fontSize="small"
-            />
-          </Tooltip>
-        ) : isActive ? (
-          <NowPlayingBars active />
-        ) : isPaused ? (
-          <Typography sx={{ color: "#a259ff" }}>{index + 1}</Typography>
-        ) : (
-          <Typography sx={{ color: "white" }}>{index + 1}</Typography>
-        )}
+        <Box
+          sx={{
+            width: 24,
+            height: 24,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            mx: "auto",
+          }}
+        >
+          {hovered && current && isPlaying ? (
+            <Tooltip title={`Pause ${track.title}`}>
+              <Pause
+                onClick={handlePlay}
+                sx={{ color: "white", cursor: "pointer" }}
+                fontSize="small"
+              />
+            </Tooltip>
+          ) : hovered && (!current || !isPlaying) ? (
+            <Tooltip title={`Play ${track.title}`}>
+              <PlayArrow
+                onClick={handlePlay}
+                sx={{ color: "white", cursor: "pointer" }}
+                fontSize="small"
+              />
+            </Tooltip>
+          ) : isActive ? (
+            <NowPlayingBars active />
+          ) : isPaused ? (
+            <Typography sx={{ color: "#a259ff" }}>{index + 1}</Typography>
+          ) : (
+            <Typography sx={{ color: "white" }}>{index + 1}</Typography>
+          )}
+        </Box>
       </TableCell>
 
       {/* Title & Artist */}

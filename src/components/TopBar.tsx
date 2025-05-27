@@ -2,7 +2,7 @@ import { Box, IconButton, Tooltip } from "@mui/material";
 import { Link } from "react-router-dom";
 import { PlaybackModeSelector } from "./PlaybackModeSelector";
 import { Heart, BarChart2, Music, CircleMinus } from "lucide-react";
-import SearchBar from "./SearchBar";
+import SearchBar from "./SearchBar/SearchBar";
 import { useSearch } from "@/hooks/useContext";
 
 export function TopBar() {

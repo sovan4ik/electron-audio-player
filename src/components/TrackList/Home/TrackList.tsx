@@ -50,7 +50,7 @@ export function TrackList({
             <TableCell sx={{ color: "gray" }}>Title</TableCell>
             <TableCell sx={{ color: "gray" }}>Album</TableCell>
             <TableCell sx={{ color: "gray" }}>Genre</TableCell>
-            <TableCell sx={{ color: "gray" }}>Actions</TableCell>
+            <TableCell sx={{ color: "gray" }}></TableCell>
             <TableCell size="small" sx={{ color: "gray" }}>
               <Clock3 size={18} />
             </TableCell>
