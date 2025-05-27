@@ -7,30 +7,31 @@ import {
   Typography,
 } from "@mui/material";
 import { Track } from "../../../types";
-import { TrackRow } from "./TrackRow";
+import { IgnoredTrackRow } from "./IgnoredTrackRow";
 import { Clock3 } from "lucide-react";
 
 interface Props {
   title?: string;
   tracks: Track[];
   liked: Set<string>;
+  ignored: Set<string>;
   toggleLike: (track: Track) => void;
+  toggleIgnore: (track: Track) => void;
   onPlay: (track: Track) => void;
   onPause: () => void;
   currentTrackFile?: string;
   isPlaying: boolean;
 }
 
-export function TrackList({
+export function IgnoredTrackList({
   title,
   tracks,
   liked,
+  ignored,
   toggleLike,
-  // ignored,
-  // toggleIgnore,
+  toggleIgnore,
   onPlay,
   onPause,
-
   currentTrackFile,
   isPlaying,
 }: Props) {
@@ -62,16 +63,18 @@ export function TrackList({
         </TableHead>
         <TableBody>
           {tracks.map((track, index) => (
-            <TrackRow
+            <IgnoredTrackRow
               key={track.file}
               track={track}
               index={index}
               current={track.file === currentTrackFile}
               isPlaying={track.file === currentTrackFile && isPlaying}
               onPlay={() => onPlay(track)}
-              onPause={() => onPause()}
+              onPause={onPause}
               liked={liked.has(track.file)}
-              toggleLike={() => toggleLike(track)}
+              ignored={ignored.has(track.file)}
+              toggleLike={toggleLike}
+              toggleIgnore={toggleIgnore}
             />
           ))}
         </TableBody>

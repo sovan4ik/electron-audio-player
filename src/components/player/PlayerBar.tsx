@@ -12,7 +12,14 @@ import { DurationProgress } from "../DurationProgress/DurationProgress";
 import { useAudioProgress } from "@/hooks/useAudioProgress";
 import formatDuration from "@/utils/formatDuration";
 import { VolumeSlider } from "../VolumeSlider/VolumeSlider";
-import { Volume1, Volume2, VolumeX } from "lucide-react";
+import {
+  CircleMinus,
+  Heart,
+  Slash,
+  Volume1,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 
 interface Props {
   audioRef: React.RefObject<HTMLAudioElement>;
@@ -28,13 +35,17 @@ interface Props {
   volume: number;
   setVolume: (value: number) => void;
   cover?: string; // image url (base64 or fallback)
+  liked?: boolean;
+  ignored?: boolean;
+  toggleLike?: () => void;
+  toggleIgnore?: () => void;
 }
 
 export function PlayerBar({
   isPlaying,
   audioRef,
   togglePlayPause,
-  // progress,
+
   duration,
   onSeek,
   title,
@@ -44,6 +55,10 @@ export function PlayerBar({
   volume,
   setVolume,
   cover,
+  liked,
+  ignored,
+  toggleLike,
+  toggleIgnore,
 }: Props) {
   const [lastVolume, setLastVolume] = useState(volume);
 
@@ -115,6 +130,34 @@ export function PlayerBar({
           >
             {artists?.join(", ") || ""}
           </Typography>
+        </Box>
+
+        <Box sx={{ overflow: "hidden", width: 100 }}>
+          <IconButton
+            size="small"
+            onClick={toggleIgnore}
+            sx={{ p: 0.5 }}
+            title="Ignore"
+          >
+            <CircleMinus
+              size={16}
+              color={ignored ? "#ff4d4d" : "white"}
+              strokeWidth={ignored ? 2.5 : 1.5}
+            />
+          </IconButton>
+
+          <IconButton
+            size="small"
+            onClick={toggleLike}
+            sx={{ p: 0.5 }}
+            title="Like"
+          >
+            <Heart
+              size={16}
+              color={liked ? "#1DB954" : "white"}
+              fill={liked ? "#1DB954" : "none"}
+            />
+          </IconButton>
         </Box>
       </Box>
 

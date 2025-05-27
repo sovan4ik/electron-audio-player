@@ -8,24 +8,27 @@ import "./index.css";
 import { TrackStatsProvider } from "./contexts/TrackStatsProvider";
 import { AppSettingsProvider } from "./contexts/AppSettingsProvider";
 import { AudioAnalyserWrapper } from "./components/AudioAnalyserWrapper";
-import { SearchProvider } from "./contexts/SearchContext";
+import { SearchProvider } from "./contexts/SearchProvider";
+import { TrackFlagsProvider } from "./contexts/TrackFlagsProvider";
 import { SearchResetOnRouteChange } from "./components/SearchBar/SearchResetOnRouteChange";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <AppSettingsProvider>
-      <TrackStatsProvider>
-        <AudioPlayerProvider>
-          <SearchProvider>
-            <AudioAnalyserWrapper>
-              <HashRouter>
-                <SearchResetOnRouteChange />
-                <App />
-              </HashRouter>
-            </AudioAnalyserWrapper>
-          </SearchProvider>
-        </AudioPlayerProvider>
-      </TrackStatsProvider>
+      <TrackFlagsProvider>
+        <TrackStatsProvider>
+          <AudioPlayerProvider>
+            <SearchProvider>
+              <AudioAnalyserWrapper>
+                <HashRouter>
+                  <SearchResetOnRouteChange />
+                  <App />
+                </HashRouter>
+              </AudioAnalyserWrapper>
+            </SearchProvider>
+          </AudioPlayerProvider>
+        </TrackStatsProvider>
+      </TrackFlagsProvider>
     </AppSettingsProvider>
   </React.StrictMode>
 );

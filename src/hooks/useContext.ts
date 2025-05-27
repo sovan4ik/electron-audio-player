@@ -3,7 +3,8 @@ import { AppSettingsContext } from "@/contexts/AppSettingsProvider";
 import { AudioPlayerContext } from "@/contexts/AudioPlayerProvider";
 import { TrackStatsContext } from "@/contexts/TrackStatsProvider";
 import { AudioAnalyserContext } from "@/contexts/AudioAnalyserProvider";
-import { SearchContext } from "@/contexts/SearchContext";
+import { SearchContext } from "@/contexts/SearchProvider";
+import { TrackFlagsContext } from "@/contexts/TrackFlagsProvider";
 
 export const useAppSettings = () => {
   const ctx = useContext(AppSettingsContext);
@@ -39,5 +40,12 @@ export function useSearch() {
   const ctx = useContext(SearchContext);
   if (!ctx)
     throw new Error("useSearchContext must be used within SearchProvider");
+  return ctx;
+}
+
+export function useTrackFlags() {
+  const ctx = useContext(TrackFlagsContext);
+  if (!ctx)
+    throw new Error("useTrackFlags must be used within TrackFlagsProvider");
   return ctx;
 }

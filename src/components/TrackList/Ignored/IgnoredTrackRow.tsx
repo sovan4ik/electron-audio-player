@@ -9,17 +9,14 @@ import {
 } from "@mui/material";
 import PlayArrow from "@mui/icons-material/PlayArrow";
 import Pause from "@mui/icons-material/Pause";
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import { useState } from "react";
 import { Track } from "../../../types";
 import { NowPlayingBars } from "../../NowPlayingBars";
-import { useCover } from "@/hooks/useCover";
 import formatDuration from "@/utils/formatDuration";
-import { CircleMinus, Heart } from "lucide-react";
+import { CircleMinus, Heart, Slash } from "lucide-react";
 import { GenreChip } from "../../GenreChip";
 
-interface TrackRowProps {
+interface IgnoredTrackRowProps {
   track: Track;
   index: number;
   current: boolean;
@@ -28,9 +25,11 @@ interface TrackRowProps {
   onPause: (track: Track) => void;
   liked: boolean;
   toggleLike: (track: Track) => void;
+  ignored: boolean;
+  toggleIgnore: (track: Track) => void;
 }
 
-export function TrackRow({
+export function IgnoredTrackRow({
   track,
   index,
   current,
@@ -39,7 +38,9 @@ export function TrackRow({
   onPause,
   liked,
   toggleLike,
-}: TrackRowProps) {
+  ignored,
+  toggleIgnore,
+}: IgnoredTrackRowProps) {
   const [hovered, setHovered] = useState(false);
 
   const handlePlay = (event: React.MouseEvent) => {
@@ -61,7 +62,6 @@ export function TrackRow({
       sx={{
         backgroundColor: "transparent",
         transition: "background-color 0.3s ease",
-        // cursor: "pointer",
         ":hover": {
           backgroundColor: "#2a2a2a",
         },
@@ -104,7 +104,6 @@ export function TrackRow({
         </Box>
       </TableCell>
 
-      {/* Title & Artist */}
       <TableCell align="left" sx={{ color: "white", width: 300 }}>
         <Box display="flex" alignItems="center" gap={2}>
           <Avatar
@@ -119,7 +118,6 @@ export function TrackRow({
                 variant="body1"
                 sx={{
                   color: isActive || isPaused ? "#a259ff" : "white",
-                  // fontWeight: isActive ? 500 : 400,
                 }}
               >
                 {track.title}
@@ -128,9 +126,7 @@ export function TrackRow({
 
             <Typography
               variant="body2"
-              sx={{
-                color: hovered ? "#bbbbbb" : "gray",
-              }}
+              sx={{ color: hovered ? "#bbbbbb" : "gray" }}
             >
               {track.artists.join(", ")}
             </Typography>
@@ -141,6 +137,7 @@ export function TrackRow({
       <TableCell align="left" sx={{ color: "white", width: 150 }}>
         {track.album}
       </TableCell>
+
       <TableCell align="left" sx={{ color: "white", width: 150 }}>
         <Box display="flex" gap={0.5}>
           {track.genres.map((genre) => (
@@ -148,7 +145,22 @@ export function TrackRow({
           ))}
         </Box>
       </TableCell>
+
       <TableCell align="center" sx={{ width: 150 }}>
+        <Tooltip title={ignored ? "Unignore" : "Ignore"}>
+          <IconButton
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleIgnore(track);
+            }}
+          >
+            <CircleMinus
+              size={20}
+              color={ignored ? "#ff4d4d" : "white"}
+              strokeWidth={ignored ? 2.5 : 1.5}
+            />
+          </IconButton>
+        </Tooltip>
         <Tooltip title={liked ? "Unlike" : "Like"}>
           <IconButton
             onClick={(e) => {
@@ -164,6 +176,7 @@ export function TrackRow({
           </IconButton>
         </Tooltip>
       </TableCell>
+
       <TableCell align="center" sx={{ color: "white", width: 150 }}>
         {formatDuration(track.duration)}
       </TableCell>

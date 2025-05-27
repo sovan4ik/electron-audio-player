@@ -1,13 +1,16 @@
+import { useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Box } from "@mui/material";
 import { TopBar } from "../components/TopBar";
 import { PlayerBar } from "../components/player/PlayerBar";
 
-import { useEffect, useRef } from "react";
 import { useTracks } from "@/hooks/useTracks";
 import { WaveformVisualizer } from "@/components/WaveformVisualizer";
-
-import { useAppSettings, useAudioPlayer } from "@/hooks/useContext";
+import {
+  useAppSettings,
+  useAudioPlayer,
+  useTrackFlags,
+} from "@/hooks/useContext";
 import { DynamicVisualizer } from "@/components/DynamicVisualizer";
 
 export default function RootLayout() {
@@ -20,6 +23,8 @@ export default function RootLayout() {
     isReady: isSettingsReady,
   } = useAppSettings();
   const { tracks, isTracksReady } = useTracks();
+
+  const { liked, toggleLike, ignored, toggleIgnore } = useTrackFlags();
 
   const initialized = useRef(false);
 
@@ -97,19 +102,37 @@ export default function RootLayout() {
             progress={player.progress}
             duration={player.duration}
             onSeek={player.handleSeek}
-            title={player.currentTrack?.title}
-            artists={player.currentTrack?.artists}
-            onNext={() => player.playNext()}
-            onPrev={() => player.playPrev()}
+            title={player.currentTrack.title}
+            artists={player.currentTrack.artists}
+            onNext={player.playNext}
+            onPrev={player.playPrev}
             volume={volume}
             setVolume={setVolume}
+            liked={
+              player.currentTrack ? liked.has(player.currentTrack.file) : false
+            }
+            ignored={ignored.has(player.currentTrack.file)}
+            toggleLike={() => {
+              if (player.currentTrack) toggleLike(player.currentTrack);
+            }}
+            toggleIgnore={() => {
+              const file = player.currentTrack?.file;
+              if (!player.currentTrack || !file) return;
+
+              const isIgnored = ignored.has(file);
+              toggleIgnore(player.currentTrack);
+
+              if (!isIgnored) {
+                player.ignoreTrack(file); // only for add to ignore list
+              }
+            }}
           />
         )}
 
         <audio
           crossOrigin="anonymous"
           ref={player.audioRef}
-          onEnded={() => player.playNext()}
+          onEnded={player.playNext}
           onTimeUpdate={player.handleTimeUpdate}
           onLoadedMetadata={player.handleLoadedMetadata}
         />

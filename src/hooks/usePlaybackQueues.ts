@@ -1,19 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import { useTracks } from "./useTracks";
-import { useLikes } from "./useLikes";
-import { useAppSettings } from "@/hooks/useContext";
+
+import { useAppSettings, useTrackFlags } from "@/hooks/useContext";
 import { getSmartShuffledTracks } from "@/utils/getSmartShuffledTracks";
 import { Track, PlayMode } from "@/types";
 
 export function usePlaybackQueues() {
   const { tracks, isTracksReady } = useTracks();
-  const { liked, genreStats } = useLikes();
+  const { liked, genreStats } = useTrackFlags();
   const { lastPlayed, playMode } = useAppSettings();
 
   const [currentQueue, setCurrentQueue] = useState<Track[]>([]);
   const primaryQueueRef = useRef<Track[] | null>(null);
 
-  
   useEffect(() => {
     if (!isTracksReady || tracks.length === 0 || primaryQueueRef.current)
       return;
@@ -27,7 +26,6 @@ export function usePlaybackQueues() {
     ];
   }, [tracks, isTracksReady, lastPlayed]);
 
-  
   useEffect(() => {
     if (!isTracksReady || !primaryQueueRef.current) return;
 

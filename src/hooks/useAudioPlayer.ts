@@ -243,6 +243,13 @@ export function useAudioPlayer() {
     }
   };
 
+  const ignoreTrack = (file: string) => {
+    if (currentTrack?.file === file) {
+      finalizeStats();
+      playNext();
+    }
+  };
+
   // when exiting the application
   useEffect(() => {
     const onUnload = () => finalizeStats();
@@ -269,5 +276,6 @@ export function useAudioPlayer() {
     targetVolume,
     setTargetVolume: updateVolume,
     visibleListenTime,
+    ignoreTrack,
   };
 }

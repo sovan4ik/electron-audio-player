@@ -1,41 +1,29 @@
-import { useEffect, useState } from "react";
 import { useTracks } from "@/hooks/useTracks";
-import { useAudioPlayer } from "@/hooks/useContext";
-import { Track } from "../types";
+import { useAudioPlayer, useSearch, useTrackFlags } from "@/hooks/useContext";
 import { TrackList } from "../components/TrackList/Home/TrackList";
 
 export default function LikedPage() {
   const player = useAudioPlayer();
   const { tracks } = useTracks();
-  const [liked, setLiked] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    const load = async () => {
-      const likedFromFile = await window.electronAPI.loadLikes();
-      setLiked(new Set(likedFromFile));
-    };
-    load();
-  }, []);
+  const { searchQuery } = useSearch();
+  const { liked, toggleLike } = useTrackFlags();
 
   const likedTracks = Array.from(liked)
     .map((file) => tracks.find((track) => track.file === file))
-    .filter((track) => track !== undefined)
+    .filter((track): track is NonNullable<typeof track> => !!track)
     .reverse();
 
-  const toggleLike = (track: Track) => {
-    const newLiked = new Set(liked);
-    if (newLiked.has(track.file)) {
-      newLiked.delete(track.file);
-    } else {
-      newLiked.add(track.file);
-    }
-    setLiked(newLiked);
-    window.electronAPI.saveLikes(Array.from(newLiked));
-  };
+  const filteredTracks = likedTracks.filter(
+    (track) =>
+      track.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      track.artists?.some((a) =>
+        a.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+  );
 
   return (
     <TrackList
-      tracks={likedTracks}
+      tracks={filteredTracks}
       liked={liked}
       toggleLike={toggleLike}
       onPlay={player.playTrack}
